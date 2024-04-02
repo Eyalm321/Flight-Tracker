@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment.prod';
 export class GmapsService {
   private loader: Loader | null = null;
   private isMapsLibraryLoaded: boolean = false;
+  private isMarkerLibraryLoaded: boolean = false;
 
   constructor() { }
 
@@ -25,6 +26,13 @@ export class GmapsService {
   public async loadMapsLibrary(): Promise<void> {
     if (!this.isMapsLibraryLoaded) {
       await (await this.getLoader()).importLibrary("maps");
+      this.isMapsLibraryLoaded = true;
+    }
+  }
+
+  public async loadMarkerLibrary(): Promise<void> {
+    if (!this.isMarkerLibraryLoaded) {
+      await (await this.getLoader()).importLibrary("marker");
       this.isMapsLibraryLoaded = true;
     }
   }
