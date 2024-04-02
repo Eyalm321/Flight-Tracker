@@ -68,4 +68,4 @@ testem.log
 Thumbs.db
 
 # Environment
-environment.prod.ts
+environments/environment.prod.ts
