@@ -70,7 +70,7 @@ export class MapDataService {
     div.style.top = '0';
     div.style.left = '0';
     div.style.backgroundColor = '#000000';
-    div.style.opacity = '0.4';
+    div.style.opacity = '0.6';
     div.style.zIndex = '1';
     div.style.pointerEvents = 'none';
     console.log(this.mapInstance.getDiv().getElementsByClassName('gm-style')[0].firstElementChild);

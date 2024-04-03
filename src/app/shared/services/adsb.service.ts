@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, from, map, of, throwError } from 'rxjs';
+import { Http } from '@capacitor-community/http';
 
 interface Aircraft {
   alert: number;
@@ -84,57 +85,152 @@ interface ApiResponse {
 export class AdsbService {
   private baseUrl = '/adsb/v2';
 
-  constructor(private http: HttpClient) { }
+  constructor() { }
 
   getHeaders() {
-    return new HttpHeaders({
+    return {
       'Accept': 'application/json',
-    });
+    };
   }
 
   getPiaAircrafts(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`/adsb/v2/pia`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: '/adsb/v2/pia',
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting PIA aircrafts:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getMilAircrafts(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/mil`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/mil`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting MIL aircrafts:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getLaddAircrafts(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/ladd`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/ladd`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting LADD aircrafts:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getSquawkAircrafts(squawk: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/squawk/${squawk}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/squawk/${squawk}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by squawk:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getAircraftType(type: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/type/${type}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/type/${type}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by type:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getAircraftRegistration(registration: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/registration/${registration}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/registration/${registration}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by registration:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getAircraftIcao(icao: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/icao/${icao}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/icao/${icao}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by ICAO:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getAircraftsByCallsign(callsign: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/callsign/${callsign}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/callsign/${callsign}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by callsign:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 
   getAircraftsByLocation(lat: number, lon: number, radius: number = 250): Observable<ApiResponse> {
     let url = `${this.baseUrl}/lat/${lat}/lon/${lon}/dist/${radius}`;
-    return this.http.get<ApiResponse>(url, { headers: this.getHeaders() }).pipe(
-      catchError(err => {
-        console.log('Error getting aircrafts by location:', err);
-        return throwError(() => err);
-      })
+    return from(
+      Http.request({
+        method: 'GET',
+        url: url,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting aircrafts by location:', err);
+          throw err; // Adjust error handling as necessary
+        })
     );
   }
 
   getClosestAircraft(lat: number, lon: number, radius: number): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/closest/${lat}/${lon}/${radius}`, { headers: this.getHeaders() });
+    return from(
+      Http.request({
+        method: 'GET',
+        url: `${this.baseUrl}/closest/${lat}/${lon}/${radius}`,
+        headers: this.getHeaders(),
+      }).then(response => response.data)
+        .catch(err => {
+          console.log('Error getting closest aircraft:', err);
+          throw err; // Adjust error handling as necessary
+        })
+    );
   }
 }
