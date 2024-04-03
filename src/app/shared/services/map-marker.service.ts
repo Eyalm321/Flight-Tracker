@@ -69,8 +69,13 @@ export class MapMarkerService {
       // Update existing marker position and heading
       existingMarker.position = new google.maps.LatLng(markerProps.lat, markerProps.lng);
       // Assuming the marker's icon (airplaneElement) can be directly manipulated:
-      const airplaneElement = existingMarker.content as HTMLImageElement;
-      airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
+      if (existingMarker.content) {
+        const airplaneElement = existingMarker.content as HTMLImageElement;
+        airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
+        console.log('airplaneElement.style.transform', markerProps.heading);
+
+      }
+
     } else {
       const mapInstance = this.mapDataService.getMapInstance();
       // Add new marker if it doesn't exist
