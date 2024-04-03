@@ -142,7 +142,7 @@ export class AdsbService {
       return from(
         Http.request({
           method: 'GET',
-          url: url,
+          url: `${this.baseUrl}${url}`,
           headers: this.getHeaders(),
         }).then((response: HttpResponse) => response.data)
           .catch((err: HttpErrorResponse) => {
