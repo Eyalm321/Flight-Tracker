@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, forkJoin, from, map, of, throwError } from 'rxjs';
 import { Http } from '@capacitor-community/http';
+import { HttpResponse } from '@capacitor/core';
 
 interface Aircraft {
   alert: number;
@@ -99,8 +100,8 @@ export class AdsbService {
         method: 'GET',
         url: '/adsb/v2/pia',
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting PIA aircrafts:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -113,8 +114,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/mil`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting MIL aircrafts:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -127,8 +128,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/ladd`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting LADD aircrafts:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -141,8 +142,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/squawk/${squawk}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by squawk:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -155,8 +156,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/type/${type}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by type:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -169,8 +170,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/registration/${registration}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by registration:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -183,8 +184,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/icao/${icao}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by ICAO:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -197,8 +198,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/callsign/${callsign}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by callsign:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -212,8 +213,8 @@ export class AdsbService {
         method: 'GET',
         url: url,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting aircrafts by location:', err);
           throw err; // Adjust error handling as necessary
         })
@@ -226,8 +227,8 @@ export class AdsbService {
         method: 'GET',
         url: `${this.baseUrl}/closest/${lat}/${lon}/${radius}`,
         headers: this.getHeaders(),
-      }).then(response => response.data)
-        .catch(err => {
+      }).then((response: HttpResponse) => response.data)
+        .catch((err: HttpErrorResponse) => {
           console.log('Error getting closest aircraft:', err);
           throw err; // Adjust error handling as necessary
         })
