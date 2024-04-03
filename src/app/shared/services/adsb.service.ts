@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 
 interface Aircraft {
   alert: number;
@@ -126,20 +126,15 @@ export class AdsbService {
 
   getAircraftsByLocation(lat: number, lon: number, radius: number = 250): Observable<ApiResponse> {
     let url = `${this.baseUrl}/lat/${lat}/lon/${lon}/dist/${radius}`;
-    return this.http.get<ApiResponse>(url, { headers: this.getHeaders() });
+    return this.http.get<ApiResponse>(url, { headers: this.getHeaders() }).pipe(
+      catchError(err => {
+        console.log('Error getting aircrafts by location:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   getClosestAircraft(lat: number, lon: number, radius: number): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.baseUrl}/closest/${lat}/${lon}/${radius}`, { headers: this.getHeaders() });
-  }
-
-  getCombinedAircrafts(): Observable<Aircraft[]> {
-    return forkJoin({
-      piaAircrafts: this.getPiaAircrafts(),
-      milAircrafts: this.getMilAircrafts(),
-      laddAircrafts: this.getLaddAircrafts()
-    }).pipe(
-      map(results => [...results.piaAircrafts.ac, ...results.milAircrafts.ac, ...results.laddAircrafts.ac])
-    );
   }
 }
