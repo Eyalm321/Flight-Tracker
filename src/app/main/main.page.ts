@@ -3,16 +3,19 @@ import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/stan
 import { MapDataService } from '../shared/services/map-data.service';
 import { MapMarkerService } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
+import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
 
 @Component({
   selector: 'app-main',
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, AirplaneCardComponent],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
-  @ViewChild('mapContainer', { read: ElementRef }) mapContainerRef!: ElementRef;
+  @ViewChild('mapContainer') mapContainerRef!: ElementRef;
+  @ViewChild('cardContainer') cardContainerRef!: ElementRef;
+  selectedAircraft?: string;
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
 
@@ -25,6 +28,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
       this.updatePlanesInView();
     }, 1000);
     this.setupPlaneUpdates();
+    this.listenToMarkerClicks();
   }
 
 
@@ -34,11 +38,18 @@ export class MainPage implements AfterViewInit, OnDestroy {
     }
   }
 
+  private listenToMarkerClicks(): void {
+    this.mapMarkerService.markerClicked$.subscribe(markerId => {
+      this.cardContainerRef.nativeElement.classList.toggle('hidden');
+      this.selectedAircraft = markerId;
+    });
+  }
+
   private setupPlaneUpdates(): void {
 
-    this.updateInterval = setInterval(() => {
-      this.updatePlanesInView();
-    }, 5000);
+    // this.updateInterval = setInterval(() => {
+    //   this.updatePlanesInView();
+    // }, 5000);
   }
 
   private updatePlanesInView(): void {

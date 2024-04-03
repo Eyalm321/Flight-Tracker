@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
+import { Subject } from 'rxjs';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
   id: string;
@@ -18,7 +19,11 @@ export interface MarkerProps {
   providedIn: 'root'
 })
 export class MapMarkerService {
+  private markerClickedSubject: Subject<string> = new Subject<string>();
   private markers: { [id: string]: ExtendedMarker; } = {};
+
+  markerClicked$ = this.markerClickedSubject.asObservable();
+
   constructor(private gmapsService: GmapsService, private mapDataService: MapDataService) { }
 
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
@@ -48,7 +53,7 @@ export class MapMarkerService {
   }
 
   private onClickMarker(marker: ExtendedMarker): void {
-    console.log('Marker clicked:', marker.id);
+    this.markerClickedSubject.next(marker.id);
   }
 
 
