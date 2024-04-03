@@ -84,7 +84,7 @@ interface ApiResponse {
   providedIn: 'root'
 })
 export class AdsbService {
-  private baseUrl = '/adsb/v2';
+  private baseUrl = 'https://api.adsb.lol/v2';
 
   constructor() { }
 
