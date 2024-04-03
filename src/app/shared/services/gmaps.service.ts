@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Loader } from '@googlemaps/js-api-loader';
+import { BehaviorSubject } from 'rxjs';
 import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
@@ -7,10 +8,16 @@ import { environment } from 'src/environments/environment.prod';
 })
 export class GmapsService {
   private loader: Loader | null = null;
-  private isMapsLibraryLoaded: boolean = false;
-  private isMarkerLibraryLoaded: boolean = false;
+  private mapsApiLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private markerApiLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-  constructor() { }
+  mapApiLoaded$ = this.mapsApiLoaded.asObservable();
+  markerApiLoaded$ = this.markerApiLoaded.asObservable();
+
+  constructor() {
+    this.loadMapsLibrary();
+    this.loadMarkerLibrary();
+  }
 
   private async getLoader(): Promise<Loader> {
     if (!this.loader) {
@@ -24,16 +31,16 @@ export class GmapsService {
   }
 
   public async loadMapsLibrary(): Promise<void> {
-    if (!this.isMapsLibraryLoaded) {
+    if (!this.mapsApiLoaded.value) {
       await (await this.getLoader()).importLibrary("maps");
-      this.isMapsLibraryLoaded = true;
+      this.mapsApiLoaded.next(true);
     }
   }
 
   public async loadMarkerLibrary(): Promise<void> {
-    if (!this.isMarkerLibraryLoaded) {
+    if (!this.markerApiLoaded.value) {
       await (await this.getLoader()).importLibrary("marker");
-      this.isMapsLibraryLoaded = true;
+      this.markerApiLoaded.next(true);
     }
   }
 }
