@@ -72,8 +72,6 @@ export class MapMarkerService {
       if (existingMarker.content) {
         const airplaneElement = existingMarker.content as HTMLImageElement;
         airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
-        console.log('airplaneElement.style.transform', markerProps.heading);
-
       }
 
     } else {
