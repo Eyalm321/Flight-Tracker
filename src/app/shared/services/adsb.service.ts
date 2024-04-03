@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, catchError, forkJoin, from, map, of, throwError } from 'rxjs';
 import { Http } from '@capacitor-community/http';
 import { HttpResponse } from '@capacitor/core';
+import { Platform } from '@ionic/angular';
 
 interface Aircraft {
   alert: number;
@@ -85,8 +86,9 @@ interface ApiResponse {
 })
 export class AdsbService {
   private baseUrl = 'https://api.adsb.lol/v2';
+  private proxyPath = '/adsb/v2';
 
-  constructor() { }
+  constructor(private httpClient: HttpClient, private platform: Platform) { }
 
   getHeaders() {
     return {
@@ -95,143 +97,61 @@ export class AdsbService {
   }
 
   getPiaAircrafts(): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: '/adsb/v2/pia',
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting PIA aircrafts:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/pia`);
   }
 
   getMilAircrafts(): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/mil`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting MIL aircrafts:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/mil`);
   }
 
   getLaddAircrafts(): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/ladd`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting LADD aircrafts:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/ladd`);
   }
 
   getSquawkAircrafts(squawk: string): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/squawk/${squawk}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by squawk:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/squawk/${squawk}`);
   }
 
   getAircraftType(type: string): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/type/${type}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by type:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/type/${type}`);
   }
 
   getAircraftRegistration(registration: string): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/registration/${registration}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by registration:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/registration/${registration}`);
   }
 
   getAircraftIcao(icao: string): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/icao/${icao}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by ICAO:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/icao/${icao}`);
   }
 
   getAircraftsByCallsign(callsign: string): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/callsign/${callsign}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by callsign:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/callsign/${callsign}`);
   }
 
   getAircraftsByLocation(lat: number, lon: number, radius: number = 250): Observable<ApiResponse> {
-    let url = `${this.baseUrl}/lat/${lat}/lon/${lon}/dist/${radius}`;
-    return from(
-      Http.request({
-        method: 'GET',
-        url: url,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting aircrafts by location:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    let url = `/lat/${lat}/lon/${lon}/dist/${radius}`;
+    return this.sendHttpRequest(url);
   }
 
   getClosestAircraft(lat: number, lon: number, radius: number): Observable<ApiResponse> {
-    return from(
-      Http.request({
-        method: 'GET',
-        url: `${this.baseUrl}/closest/${lat}/${lon}/${radius}`,
-        headers: this.getHeaders(),
-      }).then((response: HttpResponse) => response.data)
-        .catch((err: HttpErrorResponse) => {
-          console.log('Error getting closest aircraft:', err);
-          throw err; // Adjust error handling as necessary
-        })
-    );
+    return this.sendHttpRequest(`/closest/${lat}/${lon}/${radius}`);
+  }
+
+  private sendHttpRequest(url: string): Observable<ApiResponse> {
+    if (this.platform.is('capacitor')) {
+      return from(
+        Http.request({
+          method: 'GET',
+          url: url,
+          headers: this.getHeaders(),
+        }).then((response: HttpResponse) => response.data)
+          .catch((err: HttpErrorResponse) => {
+            console.log('Error sending HTTP request:', err);
+            throw err; // Adjust error handling as necessary
+          })
+      );
+    } else {
+      return this.httpClient.get<ApiResponse>(`${this.proxyPath}${url}`);
+    }
   }
 }

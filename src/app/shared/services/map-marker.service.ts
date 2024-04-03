@@ -21,13 +21,6 @@ export class MapMarkerService {
   private markers: { [id: string]: ExtendedMarker; } = {};
   constructor(private gmapsService: GmapsService, private mapDataService: MapDataService) { }
 
-  async addNewMarker(marker: MarkerProps, mapInstance: google.maps.Map): Promise<void> {
-    const newMarker = await this.createMarker(marker, mapInstance);
-    if (newMarker) {
-      this.markers[marker.id] = newMarker;
-    }
-  }
-
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
     try {
       await this.gmapsService.loadMarkerLibrary();
@@ -45,12 +38,17 @@ export class MapMarkerService {
       }) as ExtendedMarker;
 
       marker.id = `aircraft-${props.id}`;
-
+      marker.style.cursor = 'pointer';
+      marker.addListener('click', () => this.onClickMarker(marker));
       return marker;
     } catch (error) {
       console.error('Error initializing the Marker library:', error);
       return;
     }
+  }
+
+  private onClickMarker(marker: ExtendedMarker): void {
+    console.log('Marker clicked:', marker.id);
   }
 
 
