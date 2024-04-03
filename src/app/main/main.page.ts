@@ -3,6 +3,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/stan
 import { MapDataService } from '../shared/services/map-data.service';
 import { MapMarkerService } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
+import { OpenSkyService } from '../shared/services/open-sky.service';
 
 @Component({
   selector: 'app-main',
@@ -16,13 +17,13 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
 
-  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService) { }
+  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService, private openSkyService: OpenSkyService) { }
 
   async ngAfterViewInit(): Promise<void> {
     this.mapInstance = await this.mapDataService.initializeMap(this.mapContainerRef.nativeElement);
 
     setTimeout(() => {
-      this.updatePlanesInView();
+      this.updatePlanesInViewOpenSky();
     }, 1000);
     this.setupPlaneUpdates();
   }
@@ -53,8 +54,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private setupPlaneUpdates(): void {
 
     this.updateInterval = setInterval(() => {
-      this.updatePlanesInView();
-    }, 5000);
+      this.updatePlanesInViewOpenSky();
+    }, 7000);
   }
 
   private updatePlanesInView(): void {
@@ -85,6 +86,31 @@ export class MainPage implements AfterViewInit, OnDestroy {
         });
       });
     }
+  }
+
+  updatePlanesInViewOpenSky(): void {
+    const se = this.mapInstance!.getBounds()!.getSouthWest();
+    const ne = this.mapInstance!.getBounds()!.getNorthEast();
+    const sw = this.mapInstance!.getBounds()!.getSouthWest();
+    const nw = this.mapInstance!.getBounds()!.getNorthEast();
+    const lamin = Math.min(se.lat(), ne.lat());
+    const lomin = Math.min(se.lng(), ne.lng());
+    const lamax = Math.max(sw.lat(), nw.lat());
+    const lomax = Math.max(sw.lng(), nw.lng());
+
+    this.openSkyService.getAllStateVectors({ lamin: lamin, lomin: lomin, lamax: lamax, lomax: lomax }).forEach(data => {
+      data.states.forEach(state => {
+        console.log('State:', state);
+        this.mapMarkerService.removeMarker(state[0] as string);
+        this.mapMarkerService.addNewMarker({
+          id: state[0],
+          lat: state[6] as number,
+          lng: state[5] as number,
+          title: state[1].trim(),
+          heading: state[10] as number // Add type assertion here
+        }, this.mapInstance!);
+      });
+    });
   }
 }
 

@@ -18,13 +18,13 @@ export class MapDataService {
   }
 
   private initMapOptions() {
-    this.defaultCenter = { lat: 32.8998, lng: -96.6403 };
+    this.defaultCenter = { lat: 39.77222, lng: -101.7999 };
     this.mapId = '4aa5d613ffc8df24';
 
     this.mapOptions = {
       disableDefaultUI: true,
       center: this.defaultCenter,
-      zoom: 10,
+      zoom: 6,
       mapId: this.mapId
     };
   }
