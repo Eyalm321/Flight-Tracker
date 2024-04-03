@@ -4,6 +4,7 @@ import { MapDataService } from '../shared/services/map-data.service';
 import { MapMarkerService } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
 import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
+import { OpenSkyService } from '../shared/services/open-sky.service';
 
 @Component({
   selector: 'app-main',
@@ -19,7 +20,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
 
-  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService) { }
+  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService, private openSkyService: OpenSkyService) { }
 
   async ngAfterViewInit(): Promise<void> {
     this.mapInstance = await this.mapDataService.initializeMap(this.mapContainerRef.nativeElement);
@@ -39,17 +40,24 @@ export class MainPage implements AfterViewInit, OnDestroy {
   }
 
   private listenToMarkerClicks(): void {
-    this.mapMarkerService.markerClicked$.subscribe(markerId => {
+    this.mapMarkerService.markerClicked$.subscribe(marker => {
+      console.log('Marker clicked:', marker);
+
       this.cardContainerRef.nativeElement.classList.toggle('hidden');
-      this.selectedAircraft = markerId;
+      this.selectedAircraft = marker.id;
+      this.mapDataService.centerMapByLatLng(marker.lat, marker.lng);
+      this.openSkyService.getTrackByAircraft(marker.id).subscribe(data => {
+        console.log('Track data:', data);
+      }
+      );
     });
   }
 
   private setupPlaneUpdates(): void {
 
-    // this.updateInterval = setInterval(() => {
-    //   this.updatePlanesInView();
-    // }, 5000);
+    this.updateInterval = setInterval(() => {
+      this.updatePlanesInView();
+    }, 5000);
   }
 
   private updatePlanesInView(): void {

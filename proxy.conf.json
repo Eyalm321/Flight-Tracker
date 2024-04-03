@@ -1,0 +1,20 @@
+{
+    "/opensky": {
+        "target": "https://opensky-network.org",
+        "secure": false,
+        "changeOrigin": true,
+        "pathRewrite": {
+            "^/opensky": ""
+        },
+        "logLevel": "debug"
+    },
+    "/adsb": {
+        "target": "https://api.adsb.lol",
+        "secure": false,
+        "changeOrigin": true,
+        "pathRewrite": {
+            "^/adsb": ""
+        },
+        "logLevel": "debug"
+    }
+}

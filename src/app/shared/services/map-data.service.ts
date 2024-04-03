@@ -84,4 +84,13 @@ export class MapDataService {
     }
     return this.mapInstance;
   }
+
+  centerMapByLatLng(lat: number, lon: number): void {
+    if (!this.mapInstance) {
+      console.error('Map instance not available');
+      return;
+    }
+
+    this.mapInstance.setCenter({ lat, lng: lon });
+  }
 }

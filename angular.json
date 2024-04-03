@@ -85,7 +85,7 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "proxyConfig": "src/app/shared/proxies/adsb-proxy.conf.json"
+            "proxyConfig": "proxy.conf.json"
           }
         },
         "extract-i18n": {

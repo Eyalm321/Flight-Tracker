@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
   id: string;
@@ -19,11 +19,11 @@ export interface MarkerProps {
   providedIn: 'root'
 })
 export class MapMarkerService {
-  private markerClickedSubject: Subject<string> = new Subject<string>();
+  private markerClickedSubject: Subject<MarkerProps> = new Subject<MarkerProps>();
   private markers: { [id: string]: ExtendedMarker; } = {};
 
-  markerClicked$ = this.markerClickedSubject.asObservable();
-
+  markerClicked$: Observable<MarkerProps> = this.markerClickedSubject.asObservable();
+  selectedMarker?: MarkerProps;
   constructor(private gmapsService: GmapsService, private mapDataService: MapDataService) { }
 
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
@@ -44,7 +44,7 @@ export class MapMarkerService {
 
       marker.id = `aircraft-${props.id}`;
       marker.style.cursor = 'pointer';
-      marker.addListener('click', () => this.onClickMarker(marker));
+      marker.addListener('click', () => this.onClickMarker(props));
       return marker;
     } catch (error) {
       console.error('Error initializing the Marker library:', error);
@@ -52,8 +52,11 @@ export class MapMarkerService {
     }
   }
 
-  private onClickMarker(marker: ExtendedMarker): void {
-    this.markerClickedSubject.next(marker.id);
+  private onClickMarker(marker: MarkerProps): void {
+    this.markerClickedSubject.next(marker);
+    this.scaleSelectedMarker(1);
+    this.selectedMarker = marker;
+    this.scaleSelectedMarker();
   }
 
 
@@ -104,5 +107,16 @@ export class MapMarkerService {
         this.removeMarker(markerId);
       }
     });
+  }
+
+  scaleSelectedMarker(scale: number = 2): void {
+    if (!this.selectedMarker?.id) return;
+    const markerContent = this.markers[this.selectedMarker.id].content;
+    console.log('markerContent:', markerContent);
+
+    if (markerContent && markerContent instanceof HTMLElement) {
+      markerContent.style.width = `${32 * scale}px`;
+      markerContent.style.height = `${32 * scale}px`;
+    }
   }
 }

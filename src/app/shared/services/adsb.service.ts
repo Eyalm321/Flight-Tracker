@@ -139,17 +139,18 @@ export class AdsbService {
 
   private sendHttpRequest(url: string): Observable<ApiResponse> {
     if (this.platform.is('capacitor')) {
-      return from(
+      return new Observable(subscriber => {
         Http.request({
           method: 'GET',
           url: `${this.baseUrl}${url}`,
           headers: this.getHeaders(),
-        }).then((response: HttpResponse) => response.data)
-          .catch((err: HttpErrorResponse) => {
-            console.log('Error sending HTTP request:', err);
-            throw err; // Adjust error handling as necessary
-          })
-      );
+        }).then(response => {
+          subscriber.next(response.data);
+          subscriber.complete();
+        }).catch(error => {
+          subscriber.error(error);
+        });
+      });
     } else {
       return this.httpClient.get<ApiResponse>(`${this.proxyPath}${url}`);
     }
