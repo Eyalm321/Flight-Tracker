@@ -34,3 +34,7 @@ ion-content {
   cursor: pointer;
   transition: width 0.6s ease-in-out;
 }
+
+.smooth {
+  transition: transform 3s ease-in-out;
+}

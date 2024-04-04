@@ -92,20 +92,20 @@ export class MapMarkerService {
     }
   }
 
-  async addOrUpdateMarker(markerProps: MarkerProps): Promise<void> {
+  async addOrUpdateMarker(markerProps: MarkerProps) {
     const existingMarker = this.markers[markerProps.id];
     if (existingMarker) {
-      // Update existing marker position and heading
-      existingMarker.position = new google.maps.LatLng(markerProps.lat, markerProps.lng);
-      // Assuming the marker's icon (airplaneElement) can be directly manipulated:
+      // Smooth transition for position
+      this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng);
+
+      // Smooth rotation transition
       if (existingMarker.content) {
-        const airplaneElement = existingMarker.content as HTMLImageElement;
+        const airplaneElement = existingMarker.content as HTMLElement;
+        airplaneElement.style.transition = 'transform 6s ease-out';
         airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
       }
-
     } else {
       const mapInstance = this.mapDataService.getMapInstance();
-      // Add new marker if it doesn't exist
       if (mapInstance) {
         const newMarker = await this.createMarker(markerProps, mapInstance);
         if (newMarker) {
@@ -113,6 +113,29 @@ export class MapMarkerService {
         }
       }
     }
+  }
+
+  transitionMarkerPosition(marker: ExtendedMarker, lat: number, lng: number) {
+    if (!marker || !marker.position) return;
+
+    const startLat = Number(marker.position.lat);
+    const startLng = Number(marker.position.lng);
+    const duration = 6000;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const fraction = Math.min(elapsedTime / duration, 1);
+      const nextLat = startLat + (lat - startLat) * fraction;
+      const nextLng = startLng + (lng - startLng) * fraction;
+      marker.position = new google.maps.LatLng(nextLat, nextLng);
+
+      if (fraction < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
   }
 
   async updateMarkers(markerPropsArray: MarkerProps[]): Promise<void> {
