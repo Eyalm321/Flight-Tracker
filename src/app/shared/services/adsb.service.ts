@@ -169,6 +169,7 @@ export class AdsbService {
         lng: plane.lon
       }))
     };
+    console.log('Body:', body);
 
     return this.sendHttpRequest(`/api/0/routeset`, 'POST', body);
   }
@@ -180,7 +181,7 @@ export class AdsbService {
           method: method,
           url: `${this.baseUrl}${url}`,
           headers: this.getHeaders(),
-          data: body ? JSON.stringify(body) : null
+          data: body ? body : null
         }).then(response => {
           subscriber.next(response.data);
           subscriber.complete();
