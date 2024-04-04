@@ -20,7 +20,9 @@
     <div #cardContainer
          class="card-container"
          [style.maxHeight]="flightView ? '100%' : 0">
-      <app-airplane-card [airplane]="selectedAircraft"></app-airplane-card>
+      <ng-container *ngIf="selectedAircraft">
+        <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>
+      </ng-container>
     </div>
   </div>
 

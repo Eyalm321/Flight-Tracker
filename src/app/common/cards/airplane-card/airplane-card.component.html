@@ -1,13 +1,37 @@
-<div class="card">
+<div class="card flight-card">
   <img alt="Aircraft"
-       [src]="image"
-       (error)="loadDefaultImage()" />
-  <ion-card-header>
-    <ion-card-title>{{ airplane?.title}}</ion-card-title>
-    <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
+       [src]="image ? image : loadDefaultImage()"
+       (error)="loadDefaultImage()"
+       class="flight-image" />
+
+  <ion-card-header class="flight-header">
+    <div class="filight-info"><ion-card-title>Flight {{ aircraft.flightDetails?.flightNumber }} - {{
+        aircraft.flightDetails?.airlineCode }}</ion-card-title>
+      <ion-card-subtitle color="dark">{{ aircraft.flightDetails?.callsign }}</ion-card-subtitle>
+
+    </div>
+    <div class="aircraft-info">
+      <ion-card-subtitle color="dark">AIRCRAFT</ion-card-subtitle>
+      <ion-card-subtitle color="dark">Model: {{ aircraft.model }}</ion-card-subtitle>
+      <ion-card-subtitle color="dark">Reg.: {{ aircraft.registration }}</ion-card-subtitle>
+    </div>
+
   </ion-card-header>
 
   <ion-card-content>
-    Here's a small text description for the card content. Nothing more, nothing less.
+    <div class="airport-info">
+      <div class="airport origin">
+        <h3>Origin</h3>
+        <p><strong>{{ aircraft.originAirport?.iata }} - {{ aircraft.originAirport?.name }}</strong></p>
+        <p>{{ aircraft.originAirport?.location }}</p>
+      </div>
+
+      <div class="airport destination">
+        <h3>Destination</h3>
+        <p><strong>{{ aircraft.destinationAirport?.iata }} - {{ aircraft.destinationAirport?.name
+            }}</strong></p>
+        <p>{{ aircraft.destinationAirport?.location }}</p>
+      </div>
+    </div>
   </ion-card-content>
 </div>

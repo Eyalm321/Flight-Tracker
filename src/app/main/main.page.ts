@@ -10,6 +10,12 @@ import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 
+export interface selectedAircraft extends MarkerProps {
+  flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
+  originAirport?: { iata: string, name: string, location: string; };
+  destinationAirport?: { iata: string, name: string, location: string; };
+}
+
 @Component({
   selector: 'app-main',
   templateUrl: 'main.page.html',
@@ -20,7 +26,7 @@ import { CommonModule } from '@angular/common';
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
   @ViewChild('cardContainer') cardContainerRef!: ElementRef;
-  selectedAircraft?: MarkerProps;
+  selectedAircraft?: selectedAircraft;
   flightView: Boolean = false;
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
@@ -72,7 +78,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
           if (!selectedMarker) return;
 
-          this.mapInstance?.setCenter({ lat: data.lat, lng: data.lng });
+          this.mapDataService.centerMapByLatLng(data.lat, data.lng);
           this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
           this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
         });
@@ -91,6 +97,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
           title: data.ac[0].flight,
           heading: data.ac[0].track,
           model: data.ac[0].t,
+          registration: data.ac[0].r,
         };
       }),
     );
@@ -128,6 +135,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
           title: ac.flight,
           heading: ac.track,
           model: ac.t,
+          registration: ac.r,
         })));
       });
     }
@@ -138,9 +146,25 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }])
       .pipe(
         take(1),
+        tap(routes => {
+          if (!this.selectedAircraft) return;
+          this.selectedAircraft.flightDetails = {
+            flightNumber: routes[0].number,
+            callsign: routes[0].callsign,
+            airlineCode: routes[0].airline_code,
+          };
+          this.selectedAircraft.originAirport = {
+            iata: routes[0]._airports[0]?.iata,
+            name: routes[0]._airports[0]?.name,
+            location: routes[0]._airports[0]?.location,
+          };
+          this.selectedAircraft.destinationAirport = {
+            iata: routes[0]._airports[1]?.iata,
+            name: routes[0]._airports[1]?.name,
+            location: routes[0]._airports[1]?.location,
+          };
+        }),
         map(routes => {
-
-
           if (!routes[0]?._airports || routes[0]._airports.length < 2) {
             throw new Error('Invalid route data received');
           }

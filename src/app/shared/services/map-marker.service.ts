@@ -16,6 +16,7 @@ export interface MarkerProps {
   title: string;
   heading: number;
   model: string;
+  registration: string;
 }
 
 @Injectable({

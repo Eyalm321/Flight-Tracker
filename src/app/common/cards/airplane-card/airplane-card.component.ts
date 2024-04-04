@@ -1,5 +1,6 @@
 import { Component, Inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
+import { selectedAircraft } from 'src/app/main/main.page';
 import { CardImageManagerService } from 'src/app/shared/services/card-image-manager.service';
 import { MarkerProps } from 'src/app/shared/services/map-marker.service';
 
@@ -11,18 +12,18 @@ import { MarkerProps } from 'src/app/shared/services/map-marker.service';
   imports: [IonicModule]
 })
 export class AirplaneCardComponent implements OnChanges {
-  @Input() airplane?: MarkerProps;
+  @Input() aircraft!: selectedAircraft;
   image?: string;
   constructor(private cardImageManagerService: CardImageManagerService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.airplane && changes['airplane']) {
-      console.log('airplane', this.airplane);
-      this.image = this.cardImageManagerService.retrieveAirplaneImage(this.airplane.model);
+    if (this.aircraft && changes['airplane']) {
+      console.log('airplane', this.aircraft);
+      this.image = this.cardImageManagerService.retrieveAirplaneImage(this.aircraft.model);
     }
   }
 
   loadDefaultImage(): void {
-    if (this.airplane) this.image = this.cardImageManagerService.getDefaultImage(this.airplane?.model);
+    if (this.aircraft) this.image = this.cardImageManagerService.getDefaultImage(this.aircraft?.model);
   }
 }

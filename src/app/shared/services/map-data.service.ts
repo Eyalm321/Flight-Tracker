@@ -130,13 +130,14 @@ export class MapDataService {
     return this.mapInstance;
   }
 
-  centerMapByLatLng(lat: number, lon: number): void {
+  centerMapByLatLng(lat: number, lon: number, offsetY: number = -0.2): void {
     if (!this.mapInstance) {
       console.error('Map instance not available');
       return;
     }
 
-    this.mapInstance.setCenter({ lat, lng: lon });
+    const centerWithOffsetY = { lat: lat + offsetY, lng: lon };
+    this.mapInstance.setCenter(centerWithOffsetY);
   }
 
 
