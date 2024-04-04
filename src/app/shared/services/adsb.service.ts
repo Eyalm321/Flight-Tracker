@@ -116,7 +116,7 @@ export class AdsbService {
 
   getHeaders() {
     return {
-      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     };
   }
 
@@ -184,9 +184,7 @@ export class AdsbService {
         Http.request({
           method: method,
           url: `${this.baseUrl}${url}`,
-          headers: {
-            'Content-Type': 'application/json', // Ensure this line is present
-          },
+          headers: this.getHeaders(),
           data: body ? JSON.stringify(body) : undefined,
         }).then(response => {
           subscriber.next(response.data);
