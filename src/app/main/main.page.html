@@ -7,11 +7,21 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div #mapContainer
-       class="map-container">
+
+
+  <div class="map-wrapper">
+    <ion-icon name="arrow-back-outline"
+              class="arrow-back"
+              [style.width]="flightView ? '100%' : 0"
+              (click)="onQuitFlightView()"></ion-icon>
+    <div #mapContainer
+         class="map-container">
+    </div>
+    <div #cardContainer
+         class="card-container"
+         [style.maxHeight]="flightView ? '100%' : 0">
+      <app-airplane-card [airplane]="selectedAircraft"></app-airplane-card>
+    </div>
   </div>
-  <div #cardContainer
-       class="hidden card-container">
-    <app-airplane-card [airplane]="selectedAircraft"></app-airplane-card>
-  </div>
+
 </ion-content>

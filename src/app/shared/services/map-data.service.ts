@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { Observable, first, of, switchMap } from 'rxjs';
 import { AirplaneCardComponent } from 'src/app/common/cards/airplane-card/airplane-card.component';
+import { ExtendedMarker } from './map-marker.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class MapDataService {
   private defaultCenter?: google.maps.LatLngLiteral;
   private mapInstance?: google.maps.Map;
   private mapOverlay?: any;
+  private polyline?: google.maps.Polyline;
 
 
   constructor(private gmapsService: GmapsService) {
@@ -78,6 +80,45 @@ export class MapDataService {
     this.mapInstance.getDiv().getElementsByClassName('gm-style')[0].firstElementChild?.appendChild(div);
   }
 
+  addFlightPathPolyline(path: google.maps.LatLngLiteral[], waypoints: google.maps.LatLngLiteral[]): void {
+    if (!this.mapInstance) {
+      console.error('Map instance not available');
+      return;
+    }
+
+    const fullPath = this.integrateWaypointsIntoPath(path, waypoints);
+    console.log('Full path:', fullPath);
+
+    const polyline = new google.maps.Polyline({
+      path: fullPath,
+      geodesic: true,
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 2,
+    });
+    console.log('Polyline:', polyline);
+    this.polyline = polyline;
+    this.polyline.setMap(this.mapInstance);
+  }
+
+
+  integrateWaypointsIntoPath(path: google.maps.LatLngLiteral[], waypoints: google.maps.LatLngLiteral[]): google.maps.LatLngLiteral[] {
+    // Assuming path has at least two points (start and end), and waypoints are additional points to be integrated
+    let fullPath = [path[0], ...waypoints, path[path.length - 1]];
+
+    return fullPath;
+  }
+
+  clearPolyline(): void {
+    if (!this.mapInstance) {
+      console.error('Map instance not available');
+      return;
+    }
+
+    this.polyline?.setMap(null);
+    this.polyline = undefined;
+  }
+
   getMapInstance(): google.maps.Map | undefined {
     if (!this.mapInstance) {
       console.error('Map instance not available');
@@ -93,4 +134,6 @@ export class MapDataService {
 
     this.mapInstance.setCenter({ lat, lng: lon });
   }
+
+
 }

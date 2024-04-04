@@ -72,6 +72,30 @@ interface Aircraft {
   nav_altitude_fms: number;
 }
 
+type Airport = {
+  alt_feet: number;
+  alt_meters: number;
+  countryiso2: string;
+  iata: string;
+  icao: string;
+  lat: number;
+  location: string;
+  lon: number;
+  name: string;
+};
+
+type FlightRoute = {
+  _airport_codes_iata: string;
+  _airports: Airport[];
+  airline_code: string;
+  airport_codes: string;
+  callsign: string;
+  number: string;
+  plausible: number;
+};
+
+export type FlightRoutes = FlightRoute[];
+
 interface ApiResponse {
   ac: Aircraft[];
   ctime: number;
@@ -86,7 +110,7 @@ interface ApiResponse {
 })
 export class AdsbService {
   private baseUrl = 'https://api.adsb.lol/v2';
-  private proxyPath = '/adsb/v2';
+  private proxyPath = '/adsb';
 
   constructor(private httpClient: HttpClient, private platform: Platform) { }
 
@@ -97,53 +121,66 @@ export class AdsbService {
   }
 
   getPiaAircrafts(): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/pia`);
+    return this.sendHttpRequest(`/v2/pia`);
   }
 
   getMilAircrafts(): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/mil`);
+    return this.sendHttpRequest(`/v2/mil`);
   }
 
   getLaddAircrafts(): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/ladd`);
+    return this.sendHttpRequest(`/v2/ladd`);
   }
 
   getSquawkAircrafts(squawk: string): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/squawk/${squawk}`);
+    return this.sendHttpRequest(`/v2/squawk/${squawk}`);
   }
 
   getAircraftType(type: string): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/type/${type}`);
+    return this.sendHttpRequest(`/v2/type/${type}`);
   }
 
   getAircraftRegistration(registration: string): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/registration/${registration}`);
+    return this.sendHttpRequest(`/v2/registration/${registration}`);
   }
 
   getAircraftIcao(icao: string): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/icao/${icao}`);
+    return this.sendHttpRequest(`/v2/icao/${icao}`);
   }
 
   getAircraftsByCallsign(callsign: string): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/callsign/${callsign}`);
+    return this.sendHttpRequest(`/v2/callsign/${callsign}`);
   }
 
   getAircraftsByLocation(lat: number, lon: number, radius: number = 250): Observable<ApiResponse> {
-    let url = `/lat/${lat}/lon/${lon}/dist/${radius}`;
+    let url = `/v2/lat/${lat}/lon/${lon}/dist/${radius}`;
     return this.sendHttpRequest(url);
   }
 
   getClosestAircraft(lat: number, lon: number, radius: number): Observable<ApiResponse> {
-    return this.sendHttpRequest(`/closest/${lat}/${lon}/${radius}`);
+    return this.sendHttpRequest(`/v2/closest/${lat}/${lon}/${radius}`);
   }
 
-  private sendHttpRequest(url: string): Observable<ApiResponse> {
+  getAircraftsRouteset(arr: { callsign: string, lat: number, lon: number; }[]): Observable<FlightRoutes> {
+    const body = {
+      planes: arr.map(plane => ({
+        callsign: plane.callsign.trim(),
+        lat: plane.lat,
+        lng: plane.lon
+      }))
+    };
+
+    return this.sendHttpRequest(`/api/0/routeset`, 'POST', body);
+  }
+
+  private sendHttpRequest(url: string, method: 'GET' | 'POST' = 'GET', body?: any): Observable<any> {
     if (this.platform.is('capacitor')) {
       return new Observable(subscriber => {
         Http.request({
-          method: 'GET',
+          method: method,
           url: `${this.baseUrl}${url}`,
           headers: this.getHeaders(),
+          data: body ? JSON.stringify(body) : null
         }).then(response => {
           subscriber.next(response.data);
           subscriber.complete();
@@ -152,7 +189,15 @@ export class AdsbService {
         });
       });
     } else {
-      return this.httpClient.get<ApiResponse>(`${this.proxyPath}${url}`);
+      // Adjust request handling based on method for non-Capacitor environments
+      if (method === 'GET') {
+        return this.httpClient.get<ApiResponse>(`${this.proxyPath}${url}`);
+      } else if (method === 'POST') {
+        return this.httpClient.post<ApiResponse>(`${this.proxyPath}${url}`, body);
+      } else {
+        // Handle other methods as needed
+        throw new Error(`HTTP method ${method} not implemented.`);
+      }
     }
   }
 }

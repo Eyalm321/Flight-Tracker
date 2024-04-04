@@ -23,17 +23,21 @@ export class MapMarkerService {
   private markers: { [id: string]: ExtendedMarker; } = {};
 
   markerClicked$: Observable<MarkerProps> = this.markerClickedSubject.asObservable();
-  selectedMarker?: MarkerProps;
+  selectedMarker?: ExtendedMarker;
   constructor(private gmapsService: GmapsService, private mapDataService: MapDataService) { }
 
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
     try {
       await this.gmapsService.loadMarkerLibrary();
       const airplaneElement = document.createElement('img');
-      airplaneElement.style.transform = `rotate(${props.heading}deg)`;
+
       airplaneElement.src = 'assets/images/airplane.png';
       airplaneElement.style.width = '32px';
       airplaneElement.style.height = '32px';
+      airplaneElement.style.position = 'absolute';
+      airplaneElement.style.top = '-16px';
+      airplaneElement.style.left = '-16px';
+      airplaneElement.style.transform = `rotate(${props.heading}deg)`;
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: props.lat, lng: props.lng },
         map: mapInstance,
@@ -42,8 +46,9 @@ export class MapMarkerService {
         zIndex: 1000
       }) as ExtendedMarker;
 
-      marker.id = `aircraft-${props.id}`;
+      marker.id = `${props.id}`;
       marker.style.cursor = 'pointer';
+
       marker.addListener('click', () => this.onClickMarker(props));
       return marker;
     } catch (error) {
@@ -53,10 +58,16 @@ export class MapMarkerService {
   }
 
   private onClickMarker(marker: MarkerProps): void {
-    this.markerClickedSubject.next(marker);
     this.scaleSelectedMarker(1);
-    this.selectedMarker = marker;
+
+    this.selectedMarker = this.markers[marker.id];
+    this.markerClickedSubject.next(marker);
+
     this.scaleSelectedMarker();
+  }
+
+  getSelectedMarker(): ExtendedMarker | undefined {
+    return this.selectedMarker;
   }
 
 
@@ -111,12 +122,32 @@ export class MapMarkerService {
 
   scaleSelectedMarker(scale: number = 2): void {
     if (!this.selectedMarker?.id) return;
-    const markerContent = this.markers[this.selectedMarker.id].content;
+    const markerContent = this.markers[this.selectedMarker.id];
     console.log('markerContent:', markerContent);
-
+    const size = 32 * scale;
     if (markerContent && markerContent instanceof HTMLElement) {
-      markerContent.style.width = `${32 * scale}px`;
-      markerContent.style.height = `${32 * scale}px`;
+      markerContent.style.width = `${size}px`;
+      markerContent.style.height = `${size}px`;
+      markerContent.style.top = `-${size / 2}px`;
+      markerContent.style.left = `-${size / 2}px`;
     }
+  }
+
+  clearAllOtherMarkers(markerId: string): void {
+    Object.keys(this.markers).forEach(id => {
+      if (id !== markerId) {
+        this.removeMarker(id);
+      }
+    });
+  }
+
+  positionMarker(marker: ExtendedMarker, lat: number, lon: number, heading: number): void {
+    if (!marker) {
+      console.error('No marker available');
+      return;
+    }
+    const position = new google.maps.LatLng(lat, lon);
+    marker.position = position;
+    marker.style.transform = `rotate(${heading}deg)`;
   }
 }
