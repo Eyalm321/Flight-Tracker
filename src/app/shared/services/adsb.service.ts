@@ -184,7 +184,6 @@ export class AdsbService {
         Http.request({
           method: method,
           url: `${this.baseUrl}${url}`,
-          headers: this.getHeaders(),
           data: body
         }).then(response => {
           subscriber.next(response.data);
