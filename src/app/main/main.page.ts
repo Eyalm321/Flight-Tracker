@@ -37,7 +37,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
     setTimeout(() => {
       this.updatePlanesInView();
-    }, 1000);
+    }, 5000);
     this.setupAllPlanesUpdates();
     this.listenToMarkerClicks();
   }
