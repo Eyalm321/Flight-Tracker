@@ -1,5 +1,5 @@
 import { Component, Inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/angular/standalone';
 import { selectedAircraft } from 'src/app/main/main.page';
 import { CardImageManagerService } from 'src/app/shared/services/card-image-manager.service';
 import { MarkerProps } from 'src/app/shared/services/map-marker.service';
@@ -9,7 +9,7 @@ import { MarkerProps } from 'src/app/shared/services/map-marker.service';
   templateUrl: './airplane-card.component.html',
   styleUrls: ['./airplane-card.component.scss'],
   standalone: true,
-  imports: [IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle]
+  imports: [IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCard]
 })
 export class AirplaneCardComponent implements OnChanges {
   @Input() aircraft!: selectedAircraft;

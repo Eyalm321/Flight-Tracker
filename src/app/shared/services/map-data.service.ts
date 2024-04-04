@@ -1,57 +1,51 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
-import { Observable, first, of, switchMap } from 'rxjs';
-import { AirplaneCardComponent } from 'src/app/common/cards/airplane-card/airplane-card.component';
-import { ExtendedMarker } from './map-marker.service';
+import { first, of, switchMap } from 'rxjs';
+import { ThemeWatcherService } from './theme-watcher.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapDataService {
-  private mapOptions?: google.maps.MapOptions;
-  private mapId?: string;
+  private mapId: { light: string; dark: string; } = { light: '14ea4fe39938305f', dark: '4b22f24c4ce94fa2' };
+  private mapOptions?: google.maps.MapOptions = {
+    disableDefaultUI: true,
+    center: { lat: 39.77222, lng: -101.7999 },
+    zoom: 6,
+    mapId: this.mapId.light,
+  };
   private defaultCenter?: google.maps.LatLngLiteral;
   private mapInstance?: google.maps.Map;
-  private mapOverlay?: any;
   private polyline?: google.maps.Polyline;
 
 
-  constructor(private gmapsService: GmapsService) {
-    this.initMapOptions();
+  constructor(private gmapsService: GmapsService, private themeWatcherService: ThemeWatcherService) {
+
   }
 
-  private initMapOptions() {
-    this.defaultCenter = { lat: 39.77222, lng: -101.7999 };
-    this.mapId = '4aa5d613ffc8df24';
+  initNewMapInstance(): void {
+    this.mapInstance = undefined;
 
-    this.mapOptions = {
-      disableDefaultUI: true,
-      center: this.defaultCenter,
-      zoom: 6,
-      mapId: this.mapId
-    };
   }
 
   getPolyline(): google.maps.Polyline | undefined {
     return this.polyline;
   }
 
-  async initializeMap(element: HTMLElement): Promise<google.maps.Map | undefined> {
+  async initializeMap(element: HTMLElement, isDarkTheme: boolean): Promise<google.maps.Map | undefined> {
     return new Promise((resolve, reject) => {
       this.gmapsService.mapApiLoaded$.pipe(
         first(isLoaded => isLoaded),
         switchMap(() => {
           try {
+            if (!this.mapOptions) return of(null);
+            this.mapOptions.mapId = isDarkTheme ? this.mapId.dark : this.mapId.light;
             const mapInstance = new google.maps.Map(element, this.mapOptions);
-            if (mapInstance.get("mapId") === this.mapId) {
-              this.mapInstance = mapInstance;
-              setTimeout(() => {
-                this.addOverlay();
-              }, 500);
-              resolve(mapInstance);
-            } else {
-              reject('Map ID does not match.');
-            }
+
+            this.mapInstance = mapInstance;
+
+            resolve(mapInstance);
+
             return of(null); // Add this line to return an observable
           } catch (error) {
             console.error('Error initializing the Maps library:', error);
@@ -63,26 +57,6 @@ export class MapDataService {
     });
   }
 
-  private addOverlay(): void {
-    if (!this.mapInstance) {
-      console.error('No map instance available');
-      return;
-    }
-
-    const div = document.createElement('div');
-    div.id = 'map-overlay';
-    div.style.width = '100%';
-    div.style.height = '100%';
-    div.style.position = 'absolute';
-    div.style.top = '0';
-    div.style.left = '0';
-    div.style.backgroundColor = '#000000';
-    div.style.opacity = '0.6';
-    div.style.zIndex = '1';
-    div.style.pointerEvents = 'none';
-
-    this.mapInstance.getDiv().getElementsByClassName('gm-style')[0].firstElementChild?.appendChild(div);
-  }
 
   addFlightPathPolyline(path: google.maps.LatLngLiteral[], waypoints: google.maps.LatLngLiteral[]): void {
     if (!this.mapInstance) {

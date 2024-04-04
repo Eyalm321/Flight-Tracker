@@ -9,6 +9,7 @@ import { routes } from '../app.routes';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
+import { ThemeWatcherService } from '../shared/services/theme-watcher.service';
 
 export interface selectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
@@ -36,16 +37,18 @@ export class MainPage implements AfterViewInit, OnDestroy {
   });
 
 
-  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService) { }
+  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService, private themeWatcherService: ThemeWatcherService) { }
 
   async ngAfterViewInit(): Promise<void> {
-    this.mapInstance = await this.mapDataService.initializeMap(this.mapContainerRef.nativeElement);
+    const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    this.mapInstance = await this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, isDarkTheme.matches);
 
     setTimeout(() => {
       this.updatePlanesInView();
     }, 3000);
     this.setupAllPlanesUpdates();
     this.listenToMarkerClicks();
+    this.listenToThemeChanges();
   }
 
 
@@ -53,6 +56,17 @@ export class MainPage implements AfterViewInit, OnDestroy {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
+  }
+
+  private listenToThemeChanges(): void {
+    this.themeWatcherService.themeChanged$.subscribe(darkMode => {
+      console.log('Dark mode changed:', darkMode);
+
+      this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, darkMode).then(mapInstance => {
+        this.mapInstance = mapInstance;
+      }
+      );
+    });
   }
 
   private listenToMarkerClicks(): void {
