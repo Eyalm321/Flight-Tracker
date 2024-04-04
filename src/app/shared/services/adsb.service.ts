@@ -187,7 +187,7 @@ export class AdsbService {
           headers: {
             'Content-Type': 'application/json', // Ensure this line is present
           },
-          data: body ? JSON.stringify(body) : null,
+          data: body ? JSON.stringify(body) : undefined,
         }).then(response => {
           subscriber.next(response.data);
           subscriber.complete();
