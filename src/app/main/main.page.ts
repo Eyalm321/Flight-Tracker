@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
   standalone: true,
-  imports: [IonicModule, IonContent, AirplaneCardComponent, CommonModule],
+  imports: [IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, CommonModule],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
