@@ -174,8 +174,8 @@ export class AdsbService {
   }
 
   private sendHttpRequest(url: string, method: 'GET' | 'POST' = 'GET', body?: any): Observable<any> {
-    console.log('Sending request:', `${this.baseUrl}${url}`);
-    console.log('with body:', body);
+
+
     if (method === 'POST' && !body) {
       throw new Error('POST request requires a body.');
     }

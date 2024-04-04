@@ -80,7 +80,7 @@ export class MapDataService {
     div.style.opacity = '0.6';
     div.style.zIndex = '1';
     div.style.pointerEvents = 'none';
-    console.log(this.mapInstance.getDiv().getElementsByClassName('gm-style')[0].firstElementChild);
+
     this.mapInstance.getDiv().getElementsByClassName('gm-style')[0].firstElementChild?.appendChild(div);
   }
 
@@ -91,7 +91,7 @@ export class MapDataService {
     }
 
     const fullPath = this.integrateWaypointsIntoPath(path, waypoints);
-    console.log('Full path:', fullPath);
+
 
     const polyline = new google.maps.Polyline({
       path: fullPath,
@@ -100,7 +100,7 @@ export class MapDataService {
       strokeOpacity: 1.0,
       strokeWeight: 2,
     });
-    console.log('Polyline:', polyline);
+
     this.polyline = polyline;
     this.polyline.setMap(this.mapInstance);
   }

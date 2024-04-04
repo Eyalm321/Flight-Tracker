@@ -51,7 +51,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
   private listenToMarkerClicks(): void {
     this.mapMarkerService.markerClicked$.subscribe(marker => {
-      console.log('Marker clicked:', marker);
+
       clearInterval(this.updateInterval);
       this.cardContainerRef.nativeElement.classList.remove('hidden');
       this.selectedAircraft = marker;
@@ -68,12 +68,12 @@ export class MainPage implements AfterViewInit, OnDestroy {
       this.updateInterval = setInterval(() => {
         this.getAircraftPropsByIcao(marker.id).subscribe(data => {
           const selectedMarker = this.mapMarkerService.getSelectedMarker();
-          console.log('Selected Marker:', selectedMarker);
+
 
           if (!selectedMarker) return;
-          console.log('Updating marker:', data);
+
           this.mapInstance?.setCenter({ lat: data.lat, lng: data.lng });
-          this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng);
+          this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
           this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
         });
       }, 3000);
@@ -89,7 +89,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
           lat: data.ac[0].lat,
           lng: data.ac[0].lon,
           title: data.ac[0].flight,
-          heading: data.ac[0].track
+          heading: data.ac[0].track,
+          model: data.ac[0].t,
         };
       }),
     );
@@ -99,6 +100,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
     this.updateInterval = setInterval(() => {
       this.updatePlanesInView();
+      this.mapMarkerService.printAllPlaneTypes();
     }, 6000);
   }
 
@@ -124,7 +126,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
           lat: ac.lat,
           lng: ac.lon,
           title: ac.flight,
-          heading: ac.track
+          heading: ac.track,
+          model: ac.t,
         })));
       });
     }
@@ -136,7 +139,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
       .pipe(
         take(1),
         map(routes => {
-          console.log('Routes:', routes);
+
 
           if (!routes[0]?._airports || routes[0]._airports.length < 2) {
             throw new Error('Invalid route data received');

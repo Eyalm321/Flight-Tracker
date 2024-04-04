@@ -5,6 +5,8 @@ import { Observable, Subject } from 'rxjs';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
   id: string;
+  heading: number;
+  model: string;
 }
 
 export interface MarkerProps {
@@ -13,6 +15,7 @@ export interface MarkerProps {
   lng: number;
   title: string;
   heading: number;
+  model: string;
 }
 
 @Injectable({
@@ -38,6 +41,7 @@ export class MapMarkerService {
       airplaneElement.style.top = '-16px';
       airplaneElement.style.left = '-16px';
       airplaneElement.style.transform = `rotate(${props.heading}deg)`;
+
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: props.lat, lng: props.lng },
         map: mapInstance,
@@ -48,6 +52,10 @@ export class MapMarkerService {
 
       marker.id = `${props.id}`;
       marker.style.cursor = 'pointer';
+      marker.heading = props.heading;
+      marker.model = props.model;
+
+
 
       marker.addListener('click', () => this.onClickMarker(props));
       return marker;
@@ -73,7 +81,7 @@ export class MapMarkerService {
   changePathMiddleWaypoints(path: { lat: number, lng: number; }[]): void {
     const polyline = this.mapDataService.getPolyline();
     const renderedPath = polyline?.getPath().getArray() ?? [];
-    console.log('path:', renderedPath);
+
     const origin = renderedPath[0];
     const destination = renderedPath[renderedPath.length - 1];
     const pathArray = [origin, ...path, destination];
@@ -96,7 +104,7 @@ export class MapMarkerService {
     const existingMarker = this.markers[markerProps.id];
     if (existingMarker) {
       // Smooth transition for position
-      this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng);
+      this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng, markerProps.heading);
 
       // Smooth rotation transition
       if (existingMarker.content) {
@@ -115,7 +123,7 @@ export class MapMarkerService {
     }
   }
 
-  transitionMarkerPosition(marker: ExtendedMarker, lat: number, lng: number) {
+  transitionMarkerPosition(marker: ExtendedMarker, lat: number, lng: number, newHeading: number): void {
     if (!marker || !marker.position) return;
 
     const startLat = Number(marker.position.lat);
@@ -129,6 +137,8 @@ export class MapMarkerService {
       const nextLat = startLat + (lat - startLat) * fraction;
       const nextLng = startLng + (lng - startLng) * fraction;
       marker.position = new google.maps.LatLng(nextLat, nextLng);
+
+      this.rotateMarker(marker, newHeading);
 
       if (fraction < 1) {
         requestAnimationFrame(animate);
@@ -158,7 +168,7 @@ export class MapMarkerService {
   scaleSelectedMarker(scale: number = 2): void {
     if (!this.selectedMarker?.id) return;
     const markerContent = this.markers[this.selectedMarker.id];
-    console.log('markerContent:', markerContent);
+
     const size = 32 * scale;
     if (markerContent && markerContent instanceof HTMLElement) {
       markerContent.style.width = `${size}px`;
@@ -183,6 +193,20 @@ export class MapMarkerService {
     }
     const position = new google.maps.LatLng(lat, lon);
     marker.position = position;
-    marker.style.transform = `rotate(${heading}deg)`;
+    this.rotateMarker(marker, heading);
+  }
+
+  rotateMarker(marker: ExtendedMarker, heading: number): void {
+    if (!marker) {
+      console.error('No marker available');
+      return;
+    }
+    const airplaneElement = marker.content as HTMLElement;
+    airplaneElement.style.transform = `rotate(${heading}deg)`;
+  }
+
+  printAllPlaneTypes(): void {
+    const types = Object.keys(this.markers).map(key => this.markers[key].model);
+
   }
 }
