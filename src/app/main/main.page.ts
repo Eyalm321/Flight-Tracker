@@ -72,7 +72,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
           if (!selectedMarker) return;
           console.log('Updating marker:', data);
-
+          this.mapInstance?.setCenter({ lat: data.lat, lng: data.lng });
           this.mapMarkerService.positionMarker(selectedMarker, data.lat, data.lng, data.heading);
         });
       }, 3000);
