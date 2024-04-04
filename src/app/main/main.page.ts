@@ -20,7 +20,7 @@ import { CommonModule } from '@angular/common';
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
   @ViewChild('cardContainer') cardContainerRef!: ElementRef;
-  selectedAircraft?: string;
+  selectedAircraft?: MarkerProps;
   flightView: Boolean = false;
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
@@ -54,7 +54,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
       console.log('Marker clicked:', marker);
       clearInterval(this.updateInterval);
       this.cardContainerRef.nativeElement.classList.remove('hidden');
-      this.selectedAircraft = marker.id;
+      this.selectedAircraft = marker;
 
       if (marker.lat && marker.lng) {
         this.mapDataService.centerMapByLatLng(marker.lat, marker.lng);
@@ -74,6 +74,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
           console.log('Updating marker:', data);
           this.mapInstance?.setCenter({ lat: data.lat, lng: data.lng });
           this.mapMarkerService.positionMarker(selectedMarker, data.lat, data.lng, data.heading);
+          this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
         });
       }, 3000);
     });

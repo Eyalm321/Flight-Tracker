@@ -1,5 +1,6 @@
 import { Component, Inject, Input } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
+import { MarkerProps } from 'src/app/shared/services/map-marker.service';
 
 @Component({
   selector: 'app-airplane-card',
@@ -9,7 +10,7 @@ import { IonicModule } from '@ionic/angular';
   imports: [IonicModule]
 })
 export class AirplaneCardComponent {
-  @Input() airplane?: string;
+  @Input() airplane?: MarkerProps;
   constructor() { }
 
 }

@@ -32,6 +32,10 @@ export class MapDataService {
     };
   }
 
+  getPolyline(): google.maps.Polyline | undefined {
+    return this.polyline;
+  }
+
   async initializeMap(element: HTMLElement): Promise<google.maps.Map | undefined> {
     return new Promise((resolve, reject) => {
       this.gmapsService.mapApiLoaded$.pipe(

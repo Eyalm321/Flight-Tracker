@@ -70,6 +70,18 @@ export class MapMarkerService {
     return this.selectedMarker;
   }
 
+  changePathMiddleWaypoints(path: { lat: number, lng: number; }[]): void {
+    const polyline = this.mapDataService.getPolyline();
+    const renderedPath = polyline?.getPath().getArray() ?? [];
+    console.log('path:', renderedPath);
+    const origin = renderedPath[0];
+    const destination = renderedPath[renderedPath.length - 1];
+    const pathArray = [origin, ...path, destination];
+    if (polyline) {
+      polyline.setPath(pathArray);
+    }
+  }
+
 
   removeMarker(markerId: string): void {
     const marker = this.markers[markerId];
