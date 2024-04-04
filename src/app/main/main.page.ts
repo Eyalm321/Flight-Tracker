@@ -135,6 +135,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
       .pipe(
         take(1),
         map(routes => {
+          console.log('Routes:', routes);
+
           if (!routes[0]?._airports || routes[0]._airports.length < 2) {
             throw new Error('Invalid route data received');
           }
