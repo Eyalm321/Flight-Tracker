@@ -109,7 +109,7 @@ interface ApiResponse {
   providedIn: 'root'
 })
 export class AdsbService {
-  private baseUrl = 'https://api.adsb.lol/v2';
+  private baseUrl = 'https://api.adsb.lol';
   private proxyPath = '/adsb';
 
   constructor(private httpClient: HttpClient, private platform: Platform) { }
