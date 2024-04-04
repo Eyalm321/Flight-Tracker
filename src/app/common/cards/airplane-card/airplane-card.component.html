@@ -5,14 +5,15 @@
        class="flight-image" />
 
   <ion-card-header class="flight-header">
-    <div class="filight-info"><ion-card-title>Flight {{ aircraft.flightDetails?.flightNumber }} - {{
+    <div class="filight-info">
+      <ion-card-title>Flight {{ aircraft.flightDetails?.flightNumber }} - {{
         aircraft.flightDetails?.airlineCode }}</ion-card-title><br>
-      <ion-card-subtitle color="dark">{{ aircraft.flightDetails?.callsign }}</ion-card-subtitle>
+      <ion-card-subtitle>{{ aircraft.flightDetails?.callsign }}</ion-card-subtitle>
     </div>
     <div class="aircraft-info">
-      <ion-card-subtitle color="dark">AIRCRAFT</ion-card-subtitle><br>
-      <ion-card-subtitle color="dark">Model: {{ aircraft.model }}</ion-card-subtitle><br>
-      <ion-card-subtitle color="dark">Reg.: {{ aircraft.registration }}</ion-card-subtitle>
+      <ion-card-subtitle>AIRCRAFT</ion-card-subtitle><br>
+      <ion-card-subtitle>Model: {{ aircraft.model }}</ion-card-subtitle><br>
+      <ion-card-subtitle>Reg.: {{ aircraft.registration }}</ion-card-subtitle>
     </div>
 
   </ion-card-header>
