@@ -99,6 +99,7 @@ export class MapDataService {
       strokeColor: '#FF0000',
       strokeOpacity: 1.0,
       strokeWeight: 2,
+      zIndex: 2
     });
 
     this.polyline = polyline;
