@@ -169,19 +169,23 @@ export class AdsbService {
         lng: plane.lon
       }))
     };
-    console.log('Body:', body);
 
     return this.sendHttpRequest(`/api/0/routeset`, 'POST', body);
   }
 
   private sendHttpRequest(url: string, method: 'GET' | 'POST' = 'GET', body?: any): Observable<any> {
+    console.log('Sending request:', `${this.baseUrl}${url}`);
+    console.log('with body:', body);
+    if (method === 'POST' && !body) {
+      throw new Error('POST request requires a body.');
+    }
     if (this.platform.is('capacitor')) {
       return new Observable(subscriber => {
         Http.request({
           method: method,
           url: `${this.baseUrl}${url}`,
           headers: this.getHeaders(),
-          data: body ? body : null
+          data: body
         }).then(response => {
           subscriber.next(response.data);
           subscriber.complete();
