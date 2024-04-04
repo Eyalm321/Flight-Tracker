@@ -4,7 +4,7 @@ import { MapDataService } from '../shared/services/map-data.service';
 import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
 import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
-import { Observable, map, take, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, map, take, tap } from 'rxjs';
 import { routes } from '../app.routes';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -129,27 +129,44 @@ export class MainPage implements AfterViewInit, OnDestroy {
     }
   }
 
+
   createAircraftRoute(marker: MarkerProps): void {
-
-
-    this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }]).pipe(
-      take(1),
-      map(routes => {
-        return {
-          origin: {
-            lat: routes[0]._airports[0].lat,
-            lng: routes[0]._airports[0].lon
-          },
-          destination: {
-            lat: routes[0]._airports[1].lat,
-            lng: routes[0]._airports[1].lon
+    this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }])
+      .pipe(
+        take(1), // Take only the first response
+        map(routes => {
+          // Validate the data structure
+          if (!routes[0] || !routes[0]._airports || routes[0]._airports.length < 2) {
+            throw new Error('Invalid route data received');
           }
-        };
-      })
-    ).subscribe(route => {
-      this.addFlightpathPolyline(route.origin, route.destination, { lat: marker.lat, lng: marker.lng });
-    });
+          return {
+            origin: {
+              lat: routes[0]._airports[0].lat,
+              lng: routes[0]._airports[0].lon,
+            },
+            destination: {
+              lat: routes[0]._airports[1].lat,
+              lng: routes[0]._airports[1].lon,
+            },
+          };
+        }),
+        catchError(error => {
+          // Handle errors that occur during fetching or processing
+          console.error('Error fetching aircraft route:', error);
+          return EMPTY; // Prevent the error from breaking the observable chain
+        })
+      )
+      .subscribe({
+        next: (route) => {
+          this.addFlightpathPolyline(route.origin, route.destination, { lat: marker.lat, lng: marker.lng });
+        },
+        error: (error) => {
+          // Handle any errors that slip through catchError
+          console.error('Unexpected error:', error);
+        }
+      });
   }
+
 
   addFlightpathPolyline(origin: { lat: number, lng: number; }, destination: { lat: number, lng: number; }, plane: { lat: number, lng: number; }, waypoints?: { lat: number, lng: number; }[]): void {
     const waypointLatLngs = waypoints?.map(waypoint => ({ lat: waypoint.lat, lng: waypoint.lng })) ?? [];
