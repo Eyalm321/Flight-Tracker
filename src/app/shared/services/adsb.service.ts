@@ -184,6 +184,9 @@ export class AdsbService {
         Http.request({
           method: method,
           url: `${this.baseUrl}${url}`,
+          headers: {
+            'Content-Type': 'application/json', // Ensure this line is present
+          },
           data: { body: JSON.stringify(body) },
         }).then(response => {
           subscriber.next(response.data);
