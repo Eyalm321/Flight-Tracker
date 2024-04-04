@@ -133,27 +133,25 @@ export class MainPage implements AfterViewInit, OnDestroy {
   createAircraftRoute(marker: MarkerProps): void {
     this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }])
       .pipe(
-        take(1), // Take only the first response
+        take(1),
         map(routes => {
-          // Validate the data structure
-          if (!routes[0] || !routes[0]._airports || routes[0]._airports.length < 2) {
+          if (!routes[0]?._airports || routes[0]._airports.length < 2) {
             throw new Error('Invalid route data received');
           }
-          return {
-            origin: {
-              lat: routes[0]._airports[0].lat,
-              lng: routes[0]._airports[0].lon,
-            },
-            destination: {
-              lat: routes[0]._airports[1].lat,
-              lng: routes[0]._airports[1].lon,
-            },
+          // Using optional chaining and providing a fallback value
+          const origin = {
+            lat: routes[0]._airports[0]?.lat ?? 0,
+            lng: routes[0]._airports[0]?.lon ?? 0,
           };
+          const destination = {
+            lat: routes[0]._airports[1]?.lat ?? 0,
+            lng: routes[0]._airports[1]?.lon ?? 0,
+          };
+          return { origin, destination };
         }),
         catchError(error => {
-          // Handle errors that occur during fetching or processing
           console.error('Error fetching aircraft route:', error);
-          return EMPTY; // Prevent the error from breaking the observable chain
+          return EMPTY;
         })
       )
       .subscribe({
@@ -161,9 +159,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
           this.addFlightpathPolyline(route.origin, route.destination, { lat: marker.lat, lng: marker.lng });
         },
         error: (error) => {
-          // Handle any errors that slip through catchError
           console.error('Unexpected error:', error);
-        }
+        },
       });
   }
 
