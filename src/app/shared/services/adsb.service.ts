@@ -184,7 +184,7 @@ export class AdsbService {
         Http.request({
           method: method,
           url: `${this.baseUrl}${url}`,
-          data: body
+          data: JSON.stringify(body)
         }).then(response => {
           subscriber.next(response.data);
           subscriber.complete();
