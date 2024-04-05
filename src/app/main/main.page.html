@@ -14,15 +14,14 @@
   <div class="map-wrapper">
     <ion-icon name="arrow-back-outline"
               class="arrow-back"
-              (click)="onQuitFlightView()"></ion-icon>
+              [style.max-width]="flightView ? '100%' : '0'"
+              (click)="flightView ? onQuitFlightView() : null"></ion-icon>
     <div #mapContainer
          class="map-container">
     </div>
     <div class="card-container"
          [ngClass]="{'flight-view': flightView, 'portrait': isPortrait}">
-      <ng-container *ngIf="selectedAircraft">
-        <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>
-      </ng-container>
+      <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>
     </div>
   </div>
 

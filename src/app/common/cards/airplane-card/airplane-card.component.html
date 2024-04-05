@@ -6,14 +6,14 @@
 
   <ion-card-header class="flight-header">
     <div class="filight-info">
-      <ion-card-title>Flight {{ aircraft.flightDetails?.flightNumber }} - {{
-        aircraft.flightDetails?.airlineCode }}</ion-card-title>
-      <ion-card-subtitle>{{ aircraft.flightDetails?.callsign }}</ion-card-subtitle>
+      <ion-card-title>Flight {{ aircraft?.flightDetails?.flightNumber }} - {{
+        aircraft?.flightDetails?.airlineCode }}</ion-card-title>
+      <ion-card-subtitle>{{ aircraft?.flightDetails?.callsign }}</ion-card-subtitle>
     </div>
     <div class="aircraft-info">
       <ion-card-subtitle>AIRCRAFT</ion-card-subtitle>
-      <ion-card-subtitle>Model: {{ aircraft.model }}</ion-card-subtitle>
-      <ion-card-subtitle>Reg.: {{ aircraft.registration }}</ion-card-subtitle>
+      <ion-card-subtitle>Model: {{ aircraft?.model }}</ion-card-subtitle>
+      <ion-card-subtitle>Reg.: {{ aircraft?.registration }}</ion-card-subtitle>
     </div>
 
   </ion-card-header>
@@ -22,15 +22,15 @@
     <div class="airport-info">
       <div class="airport origin">
         <h4>Origin</h4>
-        <p><strong>{{ aircraft.originAirport?.iata }} - {{ aircraft.originAirport?.name }}</strong></p>
-        <p>{{ aircraft.originAirport?.location }}</p>
+        <p><strong>{{ aircraft?.originAirport?.iata }} - {{ aircraft?.originAirport?.name }}</strong></p>
+        <p>{{ aircraft?.originAirport?.location }}</p>
       </div>
 
       <div class="airport destination">
         <h3>Destination</h3>
-        <p><strong>{{ aircraft.destinationAirport?.iata }} - {{ aircraft.destinationAirport?.name
+        <p><strong>{{ aircraft?.destinationAirport?.iata }} - {{ aircraft?.destinationAirport?.name
             }}</strong></p>
-        <p>{{ aircraft.destinationAirport?.location }}</p>
+        <p>{{ aircraft?.destinationAirport?.location }}</p>
       </div>
     </div>
   </ion-card-content>

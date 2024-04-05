@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
@@ -45,7 +45,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
     private adsbService: AdsbService,
     private mapMarkerService: MapMarkerService,
     private themeWatcherService: ThemeWatcherService,
-    private orientationService: OrientationService) { }
+    private orientationService: OrientationService,
+    private cdr: ChangeDetectorRef) { }
 
   async ngAfterViewInit(): Promise<void> {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -104,6 +105,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
         this.getAircraftPropsByIcao(marker.id)
           .subscribe(data => {
             const selectedMarker = this.mapMarkerService.getSelectedMarker();
+            this.cdr.detectChanges();
             if (!selectedMarker) return;
 
             this.mapDataService.centerMapByLatLng(data.lat, data.lng);

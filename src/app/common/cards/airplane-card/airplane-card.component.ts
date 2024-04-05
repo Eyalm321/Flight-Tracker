@@ -12,7 +12,7 @@ import { MarkerProps } from 'src/app/shared/services/map-marker.service';
   imports: [IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCard]
 })
 export class AirplaneCardComponent implements OnChanges {
-  @Input() aircraft!: selectedAircraft;
+  @Input() aircraft?: selectedAircraft;
   image?: string;
   constructor(private cardImageManagerService: CardImageManagerService) { }
 
