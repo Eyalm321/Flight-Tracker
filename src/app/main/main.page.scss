@@ -13,39 +13,6 @@ ion-content {
   height: 100%;
 }
 
-@media (orientation: landscape) {
-  .card-container {
-    top: 0;
-    bottom: 0;
-    right: 0;
-    max-width: 0;
-
-    &.flight-view {
-      max-width: 100%;
-      margin-right: 50px;
-      height: 100%;
-      align-items: center;
-      top: auto;
-    }
-  }
-}
-
-@media (orientation: portrait) {
-  .card-container {
-    bottom: 0;
-    right: auto;
-    max-height: 0;
-
-    &.flight-view {
-      max-height: 50vh;
-      margin-bottom: 34px;
-      width: 100%;
-      justify-content: center;
-    }
-  }
-
-}
-
 .my-location-button {
   width: fit-content;
   align-self: flex-end;
@@ -135,12 +102,6 @@ ion-content {
     --padding-bottom: 0;
     --padding-start: 0;
     --padding-end: 0 --border-radius: 100%;
-    margin-right: var(--ion-safe-area-right, 6px);
-    margin-bottom: var(--ion-safe-area-bottom);
-
-    &.flight-view {
-      margin-bottom: 6px;
-    }
 
     .geolocation-icon {
       color: var(--ion-text-color);
@@ -149,4 +110,56 @@ ion-content {
       padding: 12px;
     }
   }
+
+}
+
+@media (orientation: landscape) {
+  .card-container {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    max-width: 0;
+
+    &.flight-view {
+      max-width: 100%;
+      margin-right: 50px;
+      height: 100%;
+      align-items: center;
+      top: auto;
+    }
+  }
+
+  .my-location-button {
+    margin-right: var(--ion-safe-area-right);
+    margin-bottom: 6px;
+
+    &.flight-view {
+      margin-right: 6px;
+    }
+  }
+}
+
+@media (orientation: portrait) {
+  .card-container {
+    bottom: 0;
+    right: auto;
+    max-height: 0;
+
+    &.flight-view {
+      max-height: 50vh;
+      margin-bottom: 34px;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .my-location-button {
+    margin-right: 6px;
+    margin-bottom: var(--ion-safe-area-bottom);
+
+    &.flight-view {
+      margin-bottom: 6px;
+    }
+  }
+
 }
