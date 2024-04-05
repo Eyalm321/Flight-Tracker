@@ -101,6 +101,10 @@ export class MapMarkerService {
     return this.selectedMarker;
   }
 
+  setSelectedMarker(marker: ExtendedMarker): void {
+    this.selectedMarker = marker;
+  }
+
   changePathMiddleWaypoints(path: { lat: number, lng: number; }[]): void {
     const polyline = this.mapDataService.getPolyline();
     const renderedPath = polyline?.getPath().getArray() ?? [];
@@ -160,6 +164,10 @@ export class MapMarkerService {
     } else {
       return 1.6;
     }
+  }
+
+  clearAllMarkers(): void {
+    this.markers = {};
   }
 
   transitionMarkerPosition(marker: ExtendedMarker, lat: number, lng: number, newHeading: number): void {

@@ -83,41 +83,58 @@ export class MainPage implements AfterViewInit, OnDestroy {
       console.log('Dark mode changed:', darkMode);
 
       this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, darkMode).then(mapInstance => {
+        if (this.mapInstance) {
+          this.mapMarkerService.clearAllMarkers();
+          this.mapDataService.clearPolyline();
+          this.mapInstance.unbindAll();
+        }
         this.mapInstance = mapInstance;
+        if (this.selectedAircraft && this.mapInstance) {
+          this.mapMarkerService.createMarker(this.selectedAircraft, this.mapInstance).then((marker) => {
+            if (!marker || !this.selectedAircraft) return;
+            this.handleMarkerClick(this.selectedAircraft);
+            this.mapMarkerService.setSelectedMarker(marker);
+            return marker;
+          });
+        } else if (this.mapInstance) {
+          this.updatePlanesInView();
+        }
       }
       );
     });
   }
 
   private listenToMarkerClicks(): void {
-    this.mapMarkerService.markerClicked$.subscribe(marker => {
+    this.mapMarkerService.markerClicked$.subscribe(marker => this.handleMarkerClick(marker));
+  }
 
-      clearInterval(this.updateInterval);
-      this.selectedAircraft = marker;
+  handleMarkerClick(marker: MarkerProps): void {
+    clearInterval(this.updateInterval);
+    this.selectedAircraft = marker;
 
-      if (marker.lat && marker.lng) {
-        this.mapDataService.centerMapByLatLng(marker.lat, marker.lng);
-      }
+    if (marker.lat && marker.lng) {
+      this.mapDataService.centerMapByLatLng(marker.lat, marker.lng);
+    }
 
-      this.createAircraftRoute(marker);
-      this.mapMarkerService.clearAllOtherMarkers(marker.id);
-      this.mapInstance?.setZoom(10);
-      this.flightView = true;
+    this.createAircraftRoute(marker);
+    this.mapMarkerService.clearAllOtherMarkers(marker.id);
+    this.mapInstance?.setZoom(10);
+    this.flightView = true;
 
-      this.updateInterval = setInterval(() => {
-        this.getAircraftPropsByIcao(marker.id)
-          .subscribe(data => {
-            const selectedMarker = this.mapMarkerService.getSelectedMarker();
-            this.cdr.detectChanges();
-            if (!selectedMarker) return;
+    this.updateInterval = setInterval(() => {
+      this.getAircraftPropsByIcao(marker.id)
+        .subscribe(data => {
+          const selectedMarker = this.mapMarkerService.getSelectedMarker();
+          this.cdr.detectChanges();
+          if (!selectedMarker) return;
 
-            this.mapDataService.centerMapByLatLng(data.lat, data.lng);
-            this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
-            this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
+          this.mapDataService.centerMapByLatLng(data.lat, data.lng);
+          this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
+          this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
 
-          });
-      }, 3000);
-    });
+        });
+    }, 3000);
+
   }
 
   private getAircraftPropsByIcao(icao: string): Observable<MarkerProps> {
@@ -272,6 +289,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
   onQuitFlightView(): void {
     clearInterval(this.updateInterval);
     this.flightView = false;
+    this.selectedAircraft = undefined;
     this.updatePlanesInView();
     this.setupAllPlanesUpdates();
     this.mapDataService.clearPolyline();

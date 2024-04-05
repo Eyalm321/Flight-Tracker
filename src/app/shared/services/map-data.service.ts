@@ -90,8 +90,8 @@ export class MapDataService {
   }
 
   clearPolyline(): void {
-    if (!this.mapInstance) {
-      console.error('Map instance not available');
+    if (!this.mapInstance || !this.polyline) {
+      console.error('Map instance or polyline not available');
       return;
     }
 
