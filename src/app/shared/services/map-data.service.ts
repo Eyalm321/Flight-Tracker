@@ -11,7 +11,7 @@ export class MapDataService {
   private mapOptions?: google.maps.MapOptions = {
     disableDefaultUI: true,
     center: { lat: 39.77222, lng: -101.7999 },
-    zoom: 6,
+    zoom: 8,
     mapId: this.mapId.light,
   };
 

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService, Aircraft } from '../shared/services/adsb.service';
@@ -10,6 +10,7 @@ import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { ThemeWatcherService } from '../shared/services/theme-watcher.service';
+import { OrientationService } from '../shared/services/orientation.service';
 
 export interface selectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
@@ -22,23 +23,29 @@ export interface selectedAircraft extends MarkerProps {
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, IonProgressBar],
+  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, IonProgressBar, IonFooter],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
   selectedAircraft?: selectedAircraft;
   flightView: Boolean = false;
   isLoading = false;
+  isPortrait = this.orientationService.getCurrentOrientation() === 'portrait';
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
   private destroy$ = new Subject<void>();
+
 
   icons = addIcons({
     'arrow-back-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back-outline.svg',
   });
 
 
-  constructor(private mapDataService: MapDataService, private adsbService: AdsbService, private mapMarkerService: MapMarkerService, private themeWatcherService: ThemeWatcherService) { }
+  constructor(private mapDataService: MapDataService,
+    private adsbService: AdsbService,
+    private mapMarkerService: MapMarkerService,
+    private themeWatcherService: ThemeWatcherService,
+    private orientationService: OrientationService) { }
 
   async ngAfterViewInit(): Promise<void> {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -51,6 +58,11 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.setupAllPlanesUpdates();
     this.listenToMarkerClicks();
     this.listenToThemeChanges();
+    this.orientationService.getOrientationChange().subscribe((orientation) => {
+      this.isPortrait = orientation === 'portrait';
+      console.log('Orientation changed:', orientation);
+
+    });
   }
 
 
@@ -124,7 +136,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private setupAllPlanesUpdates(): void {
     this.updateInterval = setInterval(() => {
       this.updatePlanesInView();
-    }, 6000);
+    }, 4000);
   }
 
   private updatePlanesInView(): void {

@@ -14,14 +14,39 @@ ion-content {
 }
 
 .card-container {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
   display: flex;
-  justify-content: center;
-  max-height: 100%;
-  transition: max-height 0.66s ease-in-out;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  max-width: 0;
+  max-height: 0;
+  transition: max-width 0.66s ease-in-out;
+  padding-right: 16px;
+
+  &.portrait {
+    padding: unset;
+    padding-bottom: 34px;
+  }
+
+  &.flight-view {
+    &.portrait {
+      width: 100%;
+      justify-content: center;
+      max-height: 40vh;
+      max-width: 100%;
+      transition: max-height 0.66s ease-in-out;
+    }
+
+    &:not(.portrait) {
+      height: 100%;
+      align-items: center;
+      max-height: 100%;
+      max-width: 100%;
+      transition: max-width 0.66s ease-in-out;
+    }
+  }
 }
+
 
 .arrow-back {
   z-index: 1000;
