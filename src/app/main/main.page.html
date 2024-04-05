@@ -53,6 +53,7 @@
         <ion-button class="my-location-button"
                     color="primary"
                     shape="round"
+                    [ngClass]="{'flight-view': flightView}"
                     (click)="getCurrentLocation()"><ion-icon class="geolocation-icon"
                     name="navigate-outline"></ion-icon></ion-button>
 
