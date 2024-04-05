@@ -14,7 +14,7 @@ export class MapDataService {
     zoom: 6,
     mapId: this.mapId.light,
   };
-  private defaultCenter?: google.maps.LatLngLiteral;
+
   private mapInstance?: google.maps.Map;
   private polyline?: google.maps.Polyline;
 
@@ -70,7 +70,7 @@ export class MapDataService {
     const polyline = new google.maps.Polyline({
       path: fullPath,
       geodesic: true,
-      strokeColor: '#FF0000',
+      strokeColor: '#248e47',
       strokeOpacity: 1.0,
       strokeWeight: 2,
       zIndex: 2

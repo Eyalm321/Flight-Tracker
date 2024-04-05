@@ -5,7 +5,7 @@ import { Http } from '@capacitor-community/http';
 import { HttpResponse } from '@capacitor/core';
 import { Platform } from '@ionic/angular';
 
-interface Aircraft {
+export interface Aircraft {
   alert: number;
   alt_baro: number;
   alt_geom: number;

@@ -3,6 +3,8 @@
     <ion-title>
       Flight Tracker
     </ion-title>
+    <ion-progress-bar *ngIf="isLoading"
+                      type="indeterminate"></ion-progress-bar>
   </ion-toolbar>
 </ion-header>
 
@@ -17,8 +19,7 @@
     <div #mapContainer
          class="map-container">
     </div>
-    <div #cardContainer
-         class="card-container"
+    <div class="card-container"
          [style.maxHeight]="flightView ? '100%' : 0">
       <ng-container *ngIf="selectedAircraft">
         <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>

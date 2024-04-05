@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
-import { AdsbService } from '../shared/services/adsb.service';
+import { AdsbService, Aircraft } from '../shared/services/adsb.service';
 import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
-import { EMPTY, Observable, catchError, map, take, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, combineLatest, forkJoin, map, mergeMap, of, take, takeUntil, tap } from 'rxjs';
 import { routes } from '../app.routes';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -22,15 +22,16 @@ export interface selectedAircraft extends MarkerProps {
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, CommonModule],
+  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, IonProgressBar],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
-  @ViewChild('cardContainer') cardContainerRef!: ElementRef;
   selectedAircraft?: selectedAircraft;
   flightView: Boolean = false;
+  isLoading = false;
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
+  private destroy$ = new Subject<void>();
 
   icons = addIcons({
     'arrow-back-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back-outline.svg',
@@ -45,7 +46,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
     setTimeout(() => {
       this.updatePlanesInView();
-    }, 3000);
+    }, 500);
+
     this.setupAllPlanesUpdates();
     this.listenToMarkerClicks();
     this.listenToThemeChanges();
@@ -56,6 +58,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private listenToThemeChanges(): void {
@@ -73,7 +77,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.mapMarkerService.markerClicked$.subscribe(marker => {
 
       clearInterval(this.updateInterval);
-      this.cardContainerRef.nativeElement.classList.remove('hidden');
       this.selectedAircraft = marker;
 
       if (marker.lat && marker.lng) {
@@ -86,16 +89,16 @@ export class MainPage implements AfterViewInit, OnDestroy {
       this.flightView = true;
 
       this.updateInterval = setInterval(() => {
-        this.getAircraftPropsByIcao(marker.id).subscribe(data => {
-          const selectedMarker = this.mapMarkerService.getSelectedMarker();
+        this.getAircraftPropsByIcao(marker.id)
+          .subscribe(data => {
+            const selectedMarker = this.mapMarkerService.getSelectedMarker();
+            if (!selectedMarker) return;
 
+            this.mapDataService.centerMapByLatLng(data.lat, data.lng);
+            this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
+            this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
 
-          if (!selectedMarker) return;
-
-          this.mapDataService.centerMapByLatLng(data.lat, data.lng);
-          this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
-          this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
-        });
+          });
       }, 3000);
     });
   }
@@ -112,16 +115,15 @@ export class MainPage implements AfterViewInit, OnDestroy {
           heading: data.ac[0].track,
           model: data.ac[0].t,
           registration: data.ac[0].r,
+          altitude: data.ac[0].nav_altitude_mcp
         };
       }),
     );
   }
 
   private setupAllPlanesUpdates(): void {
-
     this.updateInterval = setInterval(() => {
       this.updatePlanesInView();
-      this.mapMarkerService.printAllPlaneTypes();
     }, 6000);
   }
 
@@ -131,30 +133,64 @@ export class MainPage implements AfterViewInit, OnDestroy {
     }
 
     const bounds = this.mapInstance.getBounds();
-    if (bounds) {
-      const ne = bounds.getNorthEast();
-      const sw = bounds.getSouthWest();
-      const lat = (ne.lat() + sw.lat()) / 2;
-      const lon = (ne.lng() + sw.lng()) / 2;
-      const radiusInMeters = Math.max(ne.lat() - lat, ne.lng() - lon);
-      const radiusInNM = radiusInMeters / 1852;
-      let radius = radiusInNM;
-      if (radius < 250) radius = 250;
-
-      this.adsbService.getAircraftsByLocation(lat, lon, radius).subscribe(data => {
-        this.mapMarkerService.updateMarkers(data.ac.map(ac => ({
-          id: ac.hex,
-          lat: ac.lat,
-          lng: ac.lon,
-          title: ac.flight,
-          heading: ac.track,
-          model: ac.t,
-          registration: ac.r,
-        })));
-      });
+    if (!bounds) {
+      return;
     }
+    this.isLoading = true;
+
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    const lat = (ne.lat() + sw.lat()) / 2;
+    const lon = (ne.lng() + sw.lng()) / 2;
+    const radiusInMeters = Math.max(ne.lat() - lat, ne.lng() - lon) * 1000; // Assuming degrees to meters conversion factor if needed
+    const radiusInNM = Math.max(radiusInMeters / 1852, 250); // Ensure minimum radius is 250 NM
+
+    // Utilizing combineLatest to make parallel requests
+    combineLatest([
+      this.adsbService.getAircraftsByLocation(lat, lon, radiusInNM).pipe(catchError(() => of({ ac: [] }))), // Fallback to empty array on error
+      this.adsbService.getMilAircrafts().pipe(catchError(() => of({ ac: [] }))) // Fallback to empty array on error
+    ]).pipe(
+      map(([allAircraftData, milAircraftData]) => {
+        const allMapped = this.mapAircraftData(allAircraftData.ac, 'civilian');
+        const milMapped = this.mapAircraftData(milAircraftData.ac, 'military');
+
+        return this.mergeAndCategorizeAircrafts(allMapped, milMapped);
+      }),
+      takeUntil(this.destroy$) // Assuming destroy$ is a Subject that emits when component is destroyed
+    ).subscribe(combinedAircrafts => {
+      this.mapMarkerService.updateMarkers(combinedAircrafts);
+    });
   }
 
+  private mapAircraftData(ac: any[], type: string): any[] {
+    return ac.map(aircraft => ({
+      id: aircraft.hex,
+      lat: aircraft.lat,
+      lng: aircraft.lon,
+      title: aircraft.flight,
+      heading: aircraft.track,
+      model: aircraft.t,
+      registration: aircraft.r,
+      altitude: aircraft.nav_altitude_mcp,
+      _type: type
+    }));
+  }
+
+  private mergeAndCategorizeAircrafts(allMapped: any[], milMapped: any[]): any[] {
+    const uniqueAircrafts = new Map<string, any>();
+
+    allMapped.forEach(ac => uniqueAircrafts.set(ac.id, ac));
+    milMapped.forEach(ac => {
+      if (uniqueAircrafts.has(ac.id)) {
+        const existingAc = uniqueAircrafts.get(ac.id);
+        existingAc._type = 'military'; // Re-categorize to military if found in milMapped
+      } else {
+        uniqueAircrafts.set(ac.id, ac);
+      }
+    });
+    this.isLoading = false;
+    return Array.from(uniqueAircrafts.values());
+  }
 
   createAircraftRoute(marker: MarkerProps): void {
     this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }])
@@ -219,7 +255,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
   onQuitFlightView(): void {
     clearInterval(this.updateInterval);
     this.flightView = false;
-    this.cardContainerRef.nativeElement.classList.add('hidden');
     this.updatePlanesInView();
     this.setupAllPlanesUpdates();
     this.mapDataService.clearPolyline();

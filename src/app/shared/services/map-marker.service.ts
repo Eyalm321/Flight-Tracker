@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
 import { Observable, Subject } from 'rxjs';
+import { DomSanitizer } from '@angular/platform-browser';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
   id: string;
@@ -17,6 +18,8 @@ export interface MarkerProps {
   heading: number;
   model: string;
   registration: string;
+  altitude: number;
+  _type?: string;
 }
 
 @Injectable({
@@ -28,51 +31,70 @@ export class MapMarkerService {
 
   markerClicked$: Observable<MarkerProps> = this.markerClickedSubject.asObservable();
   selectedMarker?: ExtendedMarker;
-  constructor(private gmapsService: GmapsService, private mapDataService: MapDataService) { }
+  private markerSize = 24;
+  constructor(private gmapsService: GmapsService, private mapDataService: MapDataService, private sanitizer: DomSanitizer) { }
 
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
     try {
       await this.gmapsService.loadMarkerLibrary();
-      const airplaneElement = document.createElement('img');
 
-      airplaneElement.src = 'assets/images/airplane.png';
-      airplaneElement.style.width = '32px';
-      airplaneElement.style.height = '32px';
-      airplaneElement.style.position = 'absolute';
-      airplaneElement.style.top = '-16px';
-      airplaneElement.style.left = '-16px';
-      airplaneElement.style.transform = `rotate(${props.heading}deg)`;
+      // Pre-configure the SVG element's properties to minimize reflows and repaints
+      const svgElement = this.prepareSvgElement(props);
 
       const marker = new google.maps.marker.AdvancedMarkerElement({
-        position: { lat: props.lat, lng: props.lng },
+        position: new google.maps.LatLng(props.lat, props.lng),
         map: mapInstance,
         title: props.title,
-        content: airplaneElement,
+        content: svgElement,
         zIndex: 1000
       }) as ExtendedMarker;
 
-      marker.id = `${props.id}`;
-      marker.style.cursor = 'pointer';
-      marker.heading = props.heading;
-      marker.model = props.model;
-
-
+      // Apply additional properties to the marker
+      Object.assign(marker, {
+        id: props.id,
+        style: { cursor: 'pointer' },
+        heading: props.heading,
+        model: props.model
+      });
 
       marker.addListener('click', () => this.onClickMarker(props));
       return marker;
     } catch (error) {
       console.error('Error initializing the Marker library:', error);
-      return;
     }
+    return undefined;
+  }
+
+  // Refactored out SVG element preparation to its own method
+  private prepareSvgElement(props: MarkerProps): HTMLElement {
+    const svgElement = document.createElement('img');
+    svgElement.src = props._type === 'military' ? './assets/icons/airplane_green.svg' : './assets/icons/airplane_red.svg';
+    const scale = this.getScaleByAltitude(props.altitude); // Fixed typo from 'Altitute' to 'Altitude'
+    const size = this.markerSize;
+
+    // Pre-set styles as a single assignment to minimize reflows
+    Object.assign(svgElement.style, {
+      width: `${size}px`,
+      height: `${size}px`,
+      position: 'absolute',
+      top: `${-size / 2}px`,
+      left: `${-size / 2}px`,
+      transition: 'transform 6s ease-out',
+      transform: `rotate(${props.heading}deg) scale(${scale})`
+    });
+
+    return svgElement;
+  }
+
+  async loadSvg() {
+    const svgPath = './assets/icons/airplane.svg';
+    const svgContent = await fetch(svgPath).then(response => response.text());
+    return this.sanitizer.bypassSecurityTrustHtml(svgContent);
   }
 
   private onClickMarker(marker: MarkerProps): void {
-    this.scaleSelectedMarker(1);
-
     this.selectedMarker = this.markers[marker.id];
     this.markerClickedSubject.next(marker);
-
-    this.scaleSelectedMarker();
   }
 
   getSelectedMarker(): ExtendedMarker | undefined {
@@ -102,25 +124,50 @@ export class MapMarkerService {
   }
 
   async addOrUpdateMarker(markerProps: MarkerProps) {
-    const existingMarker = this.markers[markerProps.id];
-    if (existingMarker) {
-      // Smooth transition for position
-      this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng, markerProps.heading);
+    if (!markerProps.lat || !markerProps.lng) return;
 
-      // Smooth rotation transition
-      if (existingMarker.content) {
-        const airplaneElement = existingMarker.content as HTMLElement;
-        airplaneElement.style.transition = 'transform 6s ease-out';
-        airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
-      }
+    const existingMarker = this.markers[markerProps.id];
+
+    if (existingMarker) {
+      this.updateExistingMarker(existingMarker, markerProps);
     } else {
-      const mapInstance = this.mapDataService.getMapInstance();
-      if (mapInstance) {
-        const newMarker = await this.createMarker(markerProps, mapInstance);
-        if (newMarker) {
-          this.markers[markerProps.id] = newMarker;
-        }
-      }
+      await this.createNewMarker(markerProps);
+    }
+  }
+
+  private async createNewMarker(markerProps: MarkerProps) {
+    const mapInstance = this.mapDataService.getMapInstance();
+    if (!mapInstance) return;
+
+    const newMarker = await this.createMarker(markerProps, mapInstance);
+    if (newMarker) {
+      this.markers[markerProps.id] = newMarker;
+    }
+  }
+
+  private updateExistingMarker(marker: ExtendedMarker, markerProps: MarkerProps) {
+    this.transitionMarkerPosition(marker, markerProps.lat, markerProps.lng, markerProps.heading);
+    this.applyMarkerTransformations(marker, markerProps);
+  }
+
+  private applyMarkerTransformations(marker: ExtendedMarker, markerProps: MarkerProps) {
+    if (!marker.content) return;
+    const airplaneElement = marker.content as HTMLElement;
+    airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
+    airplaneElement.style.scale = `${this.getScaleByAltitude(markerProps.altitude)}`;
+  }
+
+  private getScaleByAltitude(altitude: number): number {
+    if (altitude < 10000) {
+      return 1;
+    } else if (altitude < 20000) {
+      return 1.2;
+    } else if (altitude < 30000) {
+      return 1.4;
+    } else if (altitude < 40000) {
+      return 1.5;
+    } else {
+      return 1.6;
     }
   }
 
@@ -166,9 +213,9 @@ export class MapMarkerService {
     });
   }
 
-  scaleSelectedMarker(scale: number = 2): void {
+  scaleSelectedMarker(scale: number = 1.5): void {
     if (!this.selectedMarker?.id) return;
-    const markerContent = this.markers[this.selectedMarker.id];
+    const markerContent = this.markers[this.selectedMarker.id].content;
 
     const size = 32 * scale;
     if (markerContent && markerContent instanceof HTMLElement) {
