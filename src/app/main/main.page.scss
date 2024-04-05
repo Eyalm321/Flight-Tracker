@@ -21,8 +21,7 @@ ion-content {
   max-width: 0;
   max-height: 0;
   transition: max-width 0.66s ease-in-out;
-  margin: 6px;
-  margin-right: 16px;
+
 
 
   &.portrait {
@@ -44,6 +43,7 @@ ion-content {
       max-height: 100%;
       max-width: 100%;
       transition: max-width 0.66s ease-in-out;
+      margin-right: 16px;
     }
   }
 }
