@@ -11,6 +11,8 @@ import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { ThemeWatcherService } from '../shared/services/theme-watcher.service';
 import { OrientationService } from '../shared/services/orientation.service';
+import { GeolocationService } from '../shared/services/geolocation.service';
+
 
 export interface selectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
@@ -24,12 +26,12 @@ export interface selectedAircraft extends MarkerProps {
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, AirplaneCardComponent, IonProgressBar, IonFooter],
+  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
   selectedAircraft?: selectedAircraft;
-  flightView: Boolean = false;
+  flightView: boolean = false;
   isLoading = false;
   isPortrait = this.orientationService.getCurrentOrientation() === 'portrait';
   private mapInstance?: google.maps.Map;
@@ -39,6 +41,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
   icons = addIcons({
     'arrow-back-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back-outline.svg',
+    'navigate-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/navigate-outline.svg',
   });
 
 
@@ -47,7 +50,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
     private mapMarkerService: MapMarkerService,
     private themeWatcherService: ThemeWatcherService,
     private orientationService: OrientationService,
-    private cdr: ChangeDetectorRef) { }
+    private cdr: ChangeDetectorRef,
+    private geolocationService: GeolocationService) { }
 
   async ngAfterViewInit(): Promise<void> {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -63,13 +67,18 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.orientationService.getOrientationChange().subscribe((orientation) => {
       this.isPortrait = orientation === 'portrait';
       if (this.selectedAircraft) {
-        this.mapDataService.centerMapByLatLng(this.selectedAircraft.lat, this.selectedAircraft.lng);
+        this.mapDataService.centerMapByLatLng(this.selectedAircraft.lat, this.selectedAircraft.lng, this.flightView);
       }
       console.log('Orientation changed:', orientation);
 
     });
   }
 
+  async getCurrentLocation() {
+    const position = await this.geolocationService.getCurrentPosition();
+    if (!position) return;
+    this.mapDataService.centerMapByLatLng(position.coords.latitude, position.coords.longitude, this.flightView);
+  }
 
   ngOnDestroy(): void {
     if (this.updateInterval) {
@@ -114,7 +123,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.selectedAircraft = marker;
 
     if (marker.lat && marker.lng) {
-      this.mapDataService.centerMapByLatLng(marker.lat, marker.lng);
+      this.mapDataService.centerMapByLatLng(marker.lat, marker.lng, this.flightView);
     }
 
     this.createAircraftRoute(marker);
@@ -130,7 +139,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
           if (!selectedMarker) return;
           console.log('Updating dynamic data:', data);
           this.updateDynamicData(data);
-          this.mapDataService.centerMapByLatLng(data.lat, data.lng);
+          this.mapDataService.centerMapByLatLng(data.lat, data.lng, this.flightView);
           this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
           this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
 

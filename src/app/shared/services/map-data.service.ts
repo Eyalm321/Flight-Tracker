@@ -3,15 +3,17 @@ import { GmapsService } from './gmaps.service';
 import { first, of, switchMap } from 'rxjs';
 import { ThemeWatcherService } from './theme-watcher.service';
 import { OrientationService } from './orientation.service';
+import { GeolocationService } from './geolocation.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapDataService {
   private mapId: { light: string; dark: string; } = { light: '14ea4fe39938305f', dark: '4b22f24c4ce94fa2' };
+  private defaultCenter: google.maps.LatLngLiteral = { lat: 39.77222, lng: -101.7999 };
   private mapOptions?: google.maps.MapOptions = {
     disableDefaultUI: true,
-    center: { lat: 39.77222, lng: -101.7999 },
+    center: this.defaultCenter,
     zoom: 8,
     mapId: this.mapId.light,
   };
@@ -20,9 +22,7 @@ export class MapDataService {
   private polyline?: google.maps.Polyline;
 
 
-  constructor(private gmapsService: GmapsService, private orientationService: OrientationService) {
-
-  }
+  constructor(private gmapsService: GmapsService, private orientationService: OrientationService, private geolocationService: GeolocationService) { }
 
   initNewMapInstance(): void {
     this.mapInstance = undefined;
@@ -37,8 +37,14 @@ export class MapDataService {
     return new Promise((resolve, reject) => {
       this.gmapsService.mapApiLoaded$.pipe(
         first(isLoaded => isLoaded),
-        switchMap(() => {
+        switchMap(async () => {
+          await this.geolocationService.getCurrentPosition().then(position => {
+            if (!this.mapOptions || !position) return;
+            this.mapOptions.center = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          });
           try {
+            console.log('Center:', this.mapOptions?.center);
+
             if (!this.mapOptions) return of(null);
             this.mapOptions.mapId = isDarkTheme ? this.mapId.dark : this.mapId.light;
             const mapInstance = new google.maps.Map(element, this.mapOptions);
@@ -106,24 +112,28 @@ export class MapDataService {
     return this.mapInstance;
   }
 
-  centerMapByLatLng(lat: number, lon: number): void {
+  centerMapByLatLng(lat: number, lon: number, isFlightView: boolean): void {
     if (!this.mapInstance) {
       console.error('Map instance not available');
       return;
     }
 
-    const offsetX = 0.3;
-    const offsetY = 0.15;
+    if (isFlightView) {
+      const offsetX = 0.3;
+      const offsetY = 0.15;
 
-    const orientation = this.orientationService.getCurrentOrientation();
-    if (orientation === 'landscape') {
-      const centerWithOffsetX = { lat: lat, lng: lon + offsetX };
-      this.mapInstance.setCenter(centerWithOffsetX);
-      return;
+      const orientation = this.orientationService.getCurrentOrientation();
+      if (orientation === 'landscape') {
+        const centerWithOffsetX = { lat: lat, lng: lon + offsetX };
+        this.mapInstance.setCenter(centerWithOffsetX);
+        return;
+      }
+
+      const centerWithOffsetY = { lat: lat - offsetY, lng: lon };
+      this.mapInstance.setCenter(centerWithOffsetY);
+    } else {
+      this.mapInstance.setCenter({ lat: lat, lng: lon });
     }
-
-    const centerWithOffsetY = { lat: lat - offsetY, lng: lon };
-    this.mapInstance.setCenter(centerWithOffsetY);
   }
 
 
