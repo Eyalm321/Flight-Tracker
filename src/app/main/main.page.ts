@@ -61,6 +61,9 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.listenToThemeChanges();
     this.orientationService.getOrientationChange().subscribe((orientation) => {
       this.isPortrait = orientation === 'portrait';
+      if (this.selectedAircraft) {
+        this.mapDataService.centerMapByLatLng(this.selectedAircraft.lat, this.selectedAircraft.lng);
+      }
       console.log('Orientation changed:', orientation);
 
     });
