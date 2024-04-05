@@ -130,13 +130,14 @@ ion-content {
   }
 
   .my-location-button {
-    padding: 6px;
     pointer-events: all;
     --padding-top: 0;
     --padding-bottom: 0;
     --padding-start: 0;
     --padding-end: 0;
     --border-radius: 100%;
+    padding-right: var(--ion-safe-area-right);
+    padding-bottom: var(--ion-safe-area-bottom);
 
     .geolocation-icon {
       color: var(--ion-text-color);
