@@ -112,16 +112,17 @@ export class MapDataService {
       return;
     }
 
-    const offset = 0.2;
+    const offsetX = 0.3;
+    const offsetY = 0.2;
 
     const orientation = this.orientationService.getCurrentOrientation();
     if (orientation === 'landscape') {
-      const centerWithOffsetX = { lat: lat, lng: lon + offset };
+      const centerWithOffsetX = { lat: lat, lng: lon + offsetX };
       this.mapInstance.setCenter(centerWithOffsetX);
       return;
     }
 
-    const centerWithOffsetY = { lat: lat - offset, lng: lon };
+    const centerWithOffsetY = { lat: lat - offsetY, lng: lon };
     this.mapInstance.setCenter(centerWithOffsetY);
   }
 
