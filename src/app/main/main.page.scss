@@ -2,8 +2,6 @@ ion-content {
   --overflow: hidden;
 }
 
-ion-toolbar {}
-
 .map-wrapper {
   position: relative;
   width: 100%;
@@ -141,7 +139,7 @@ ion-toolbar {}
     --border-radius: 100%;
 
     .geolocation-icon {
-      color: var(--color);
+      color: var(--ion-text-color);
       width: 32px;
       height: 24px;
       padding: 8px;
