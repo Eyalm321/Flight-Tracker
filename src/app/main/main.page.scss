@@ -21,10 +21,11 @@ ion-content {
   max-width: 0;
   max-height: 0;
   transition: max-width 0.66s ease-in-out;
+  margin: 6px;
   margin-right: 16px;
 
+
   &.portrait {
-    margin: 6px;
     margin-bottom: 34px;
   }
 
