@@ -79,7 +79,7 @@ export class MapMarkerService {
       position: 'absolute',
       top: `${-size / 2}px`,
       left: `${-size / 2}px`,
-      transition: 'transform 6s ease-out',
+      transition: 'transform 3s ease-out',
       transform: `rotate(${props.heading}deg) scale(${scale})`
     });
 
@@ -125,46 +125,37 @@ export class MapMarkerService {
 
   async addOrUpdateMarker(markerProps: MarkerProps) {
     if (!markerProps.lat || !markerProps.lng) return;
-
     const existingMarker = this.markers[markerProps.id];
-
     if (existingMarker) {
-      this.updateExistingMarker(existingMarker, markerProps);
+      // Smooth transition for position
+      this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng, markerProps.heading);
+
+      // Smooth rotation transition
+      if (existingMarker.content) {
+        const airplaneElement = existingMarker.content as HTMLElement;
+
+        airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
+        airplaneElement.style.scale = `${this.getScaleByAltitude(markerProps.altitude)}`;
+      }
     } else {
-      await this.createNewMarker(markerProps);
+      const mapInstance = this.mapDataService.getMapInstance();
+      if (mapInstance) {
+        const newMarker = await this.createMarker(markerProps, mapInstance);
+        if (newMarker) {
+          this.markers[markerProps.id] = newMarker;
+        }
+      }
     }
-  }
-
-  private async createNewMarker(markerProps: MarkerProps) {
-    const mapInstance = this.mapDataService.getMapInstance();
-    if (!mapInstance) return;
-
-    const newMarker = await this.createMarker(markerProps, mapInstance);
-    if (newMarker) {
-      this.markers[markerProps.id] = newMarker;
-    }
-  }
-
-  private updateExistingMarker(marker: ExtendedMarker, markerProps: MarkerProps) {
-    this.transitionMarkerPosition(marker, markerProps.lat, markerProps.lng, markerProps.heading);
-    this.applyMarkerTransformations(marker, markerProps);
-  }
-
-  private applyMarkerTransformations(marker: ExtendedMarker, markerProps: MarkerProps) {
-    if (!marker.content) return;
-    const airplaneElement = marker.content as HTMLElement;
-    airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
-    airplaneElement.style.scale = `${this.getScaleByAltitude(markerProps.altitude)}`;
   }
 
   private getScaleByAltitude(altitude: number): number {
     if (altitude < 10000) {
       return 1;
-    } else if (altitude < 20000) {
+    } else if (altitude >= 10000 && altitude < 20000) {
       return 1.2;
-    } else if (altitude < 30000) {
+    } else if (altitude >= 20000 && altitude < 30000) {
       return 1.4;
-    } else if (altitude < 40000) {
+    } else if (altitude >= 30000 && altitude < 40000) {
       return 1.5;
     } else {
       return 1.6;
@@ -176,7 +167,7 @@ export class MapMarkerService {
 
     const startLat = Number(marker.position.lat);
     const startLng = Number(marker.position.lng);
-    const duration = 6000;
+    const duration = 4000;
     const startTime = performance.now();
 
     const animate = (currentTime: number) => {

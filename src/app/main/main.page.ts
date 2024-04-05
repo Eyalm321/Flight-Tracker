@@ -272,7 +272,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.updatePlanesInView();
     this.setupAllPlanesUpdates();
     this.mapDataService.clearPolyline();
-    this.mapInstance?.setZoom(6);
+    this.mapInstance?.setZoom(8);
   }
 }
 

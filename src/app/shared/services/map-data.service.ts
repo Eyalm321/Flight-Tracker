@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { first, of, switchMap } from 'rxjs';
 import { ThemeWatcherService } from './theme-watcher.service';
+import { OrientationService } from './orientation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class MapDataService {
   private polyline?: google.maps.Polyline;
 
 
-  constructor(private gmapsService: GmapsService, private themeWatcherService: ThemeWatcherService) {
+  constructor(private gmapsService: GmapsService, private orientationService: OrientationService) {
 
   }
 
@@ -105,13 +106,22 @@ export class MapDataService {
     return this.mapInstance;
   }
 
-  centerMapByLatLng(lat: number, lon: number, offsetY: number = -0.2): void {
+  centerMapByLatLng(lat: number, lon: number): void {
     if (!this.mapInstance) {
       console.error('Map instance not available');
       return;
     }
 
-    const centerWithOffsetY = { lat: lat + offsetY, lng: lon };
+    const offset = 0.2;
+
+    const orientation = this.orientationService.getCurrentOrientation();
+    if (orientation === 'landscape') {
+      const centerWithOffsetX = { lat: lat, lng: lon + offset };
+      this.mapInstance.setCenter(centerWithOffsetX);
+      return;
+    }
+
+    const centerWithOffsetY = { lat: lat - offset, lng: lon };
     this.mapInstance.setCenter(centerWithOffsetY);
   }
 
