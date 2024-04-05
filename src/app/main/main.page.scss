@@ -22,12 +22,6 @@ ion-content {
   max-height: 0;
   transition: max-width 0.66s ease-in-out;
 
-
-
-  &.portrait {
-    margin-bottom: 34px;
-  }
-
   &.flight-view {
     &.portrait {
       width: 100%;
@@ -35,9 +29,11 @@ ion-content {
       max-height: 40vh;
       max-width: 100%;
       transition: max-height 0.66s ease-in-out;
+      margin-bottom: 34px;
     }
 
     &:not(.portrait) {
+      max-height: 90%;
       height: 100%;
       align-items: center;
       max-height: 100%;
