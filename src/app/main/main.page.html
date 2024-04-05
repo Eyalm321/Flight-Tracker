@@ -1,5 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar class="ion-color">
     <ion-title>
       Flight Tracker
     </ion-title>
@@ -12,6 +12,34 @@
 
 
   <div class="map-wrapper">
+    <div class="dynamic-info-container"
+         *ngIf="flightView && selectedAircraft?.dynamic">
+      <span class="update-info"
+            *ngIf="selectedAircraft?.dynamic?.last_update">
+        seen: <span class="value">{{selectedAircraft?.dynamic?.last_update}}s ago</span>
+      </span>
+      <span class="coordinates-info"
+            *ngIf="selectedAircraft?.dynamic?.altitude">
+        Pos.: <span class="value">{{selectedAircraft?.lat}}°,{{selectedAircraft?.lng}}°</span>
+      </span>
+      <span class="altitude-info"
+            *ngIf="selectedAircraft?.dynamic?.altitude">
+        Baro. Altitude: <span class="value">{{selectedAircraft?.dynamic?.altitude}}ft</span>
+      </span>
+      <span class="geom-rate-info"
+            *ngIf="selectedAircraft?.dynamic?.geom_rate">
+        Vert. Rate: <span class="value">{{selectedAircraft?.dynamic?.geom_rate}}ft/min</span>
+      </span>
+      <span class="ground-speed-info"
+            *ngIf="selectedAircraft?.dynamic?.gs">
+        Groundspeed: <span class="value">{{selectedAircraft?.dynamic?.gs}}kts</span>
+      </span>
+      <span class="heading-info"
+            *ngIf="selectedAircraft?.heading">
+        Track: <span class="value">{{selectedAircraft?.heading}}°</span>
+      </span>
+    </div>
+
     <ion-icon name="arrow-back-outline"
               class="arrow-back"
               [style.max-width]="flightView ? '100%' : '0'"

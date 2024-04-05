@@ -1,5 +1,7 @@
 :host {
     height: 100%;
+    width: 100%;
+    padding: 0 6px;
     display: flex;
     align-items: center;
 }
@@ -12,7 +14,7 @@
     flex-direction: column;
     max-width: 400px;
     letter-spacing: 0.6px;
-
+    width: inherit;
     background: var(--background);
 
 

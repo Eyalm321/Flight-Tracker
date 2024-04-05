@@ -16,6 +16,7 @@ export interface selectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
   originAirport?: { iata: string, name: string, location: string; };
   destinationAirport?: { iata: string, name: string, location: string; };
+  dynamic?: { last_update: number, gs: number, geom_rate: number, rssi: number; altitude: number; };
 }
 
 @Component({
@@ -127,7 +128,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
           const selectedMarker = this.mapMarkerService.getSelectedMarker();
           this.cdr.detectChanges();
           if (!selectedMarker) return;
-
+          console.log('Updating dynamic data:', data);
+          this.updateDynamicData(data);
           this.mapDataService.centerMapByLatLng(data.lat, data.lng);
           this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
           this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
@@ -137,10 +139,16 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
   }
 
+  private updateDynamicData(props: selectedAircraft): void {
+    this.selectedAircraft = { ...this.selectedAircraft, ...props };
+  }
+
   private getAircraftPropsByIcao(icao: string): Observable<MarkerProps> {
     return this.adsbService.getAircraftIcao(icao).pipe(
       take(1),
       map(data => {
+        console.log('Aircraft data:', data);
+
         return {
           id: data.ac[0].hex,
           lat: data.ac[0].lat,
@@ -149,7 +157,14 @@ export class MainPage implements AfterViewInit, OnDestroy {
           heading: data.ac[0].track,
           model: data.ac[0].t,
           registration: data.ac[0].r,
-          altitude: data.ac[0].nav_altitude_mcp
+          altitude: data.ac[0].nav_altitude_mcp,
+          dynamic: {
+            last_update: data.ac[0].seen,
+            gs: data.ac[0].gs,
+            geom_rate: data.ac[0].geom_rate,
+            rssi: data.ac[0].rssi,
+            altitude: data.ac[0].alt_baro,
+          }
         };
       }),
     );

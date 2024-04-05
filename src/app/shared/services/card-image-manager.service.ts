@@ -38,7 +38,7 @@ export class CardImageManagerService {
 
   getDefaultImage(airplaneModel: string): string {
     const typeofAircraft = this.aircraftTypes[airplaneModel as keyof typeof this.aircraftTypes];
-    if (typeofAircraft === 'airplane' || typeofAircraft === 'business jet' || typeofAircraft === 'helicopter' || typeofAircraft === 'military-jet') {
+    if (typeofAircraft === 'airplane' || typeofAircraft === 'business-jet' || typeofAircraft === 'helicopter' || typeofAircraft === 'military-jet') {
       return `assets/images/card/${typeofAircraft}-silhouette.png`;
     } else {
       return `assets/images/card/airplane-silhouette.png`;
