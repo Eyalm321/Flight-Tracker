@@ -113,7 +113,7 @@ export class MapDataService {
     }
 
     const offsetX = 0.3;
-    const offsetY = 0.2;
+    const offsetY = 0.15;
 
     const orientation = this.orientationService.getCurrentOrientation();
     if (orientation === 'landscape') {
