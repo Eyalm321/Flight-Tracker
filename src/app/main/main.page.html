@@ -11,56 +11,55 @@
 <ion-content [fullscreen]="true">
   <div class="map-wrapper">
     <div class="ui-overlay">
-      <div class="top">
-        <ion-icon name="arrow-back-outline"
-                  class="arrow-back"
-                  [style.max-width]="flightView ? '100%' : '0'"
-                  (click)="flightView ? onQuitFlightView() : null"></ion-icon>
 
-        <div class="dynamic-info-container"
-             *ngIf="flightView && selectedAircraft?.dynamic">
-          <span class="update-info"
-                *ngIf="selectedAircraft?.dynamic?.last_update">
-            seen: <span class="value">{{selectedAircraft?.dynamic?.last_update}}s ago</span>
-          </span>
-          <span class="coordinates-info"
-                *ngIf="selectedAircraft?.dynamic?.altitude">
-            Pos.: <span class="value">{{selectedAircraft?.lat}}°,{{selectedAircraft?.lng}}°</span>
-          </span>
-          <span class="altitude-info"
-                *ngIf="selectedAircraft?.dynamic?.altitude">
-            Baro. Altitude: <span class="value">{{selectedAircraft?.dynamic?.altitude}}ft</span>
-          </span>
-          <span class="geom-rate-info"
-                *ngIf="selectedAircraft?.dynamic?.geom_rate">
-            Vert. Rate: <span class="value">{{selectedAircraft?.dynamic?.geom_rate}}ft/min</span>
-          </span>
-          <span class="ground-speed-info"
-                *ngIf="selectedAircraft?.dynamic?.gs">
-            Groundspeed: <span class="value">{{selectedAircraft?.dynamic?.gs}}kts</span>
-          </span>
-          <span class="heading-info"
-                *ngIf="selectedAircraft?.heading">
-            Track: <span class="value">{{selectedAircraft?.heading}}°</span>
-          </span>
+      <ion-icon name="arrow-back-outline"
+                class="arrow-back"
+                [style.max-width]="flightView ? '100%' : '0'"
+                (click)="flightView ? onQuitFlightView() : null"></ion-icon>
 
-        </div>
+      <div class="dynamic-info-container"
+           *ngIf="flightView && selectedAircraft?.dynamic">
+        <span class="update-info"
+              *ngIf="selectedAircraft?.dynamic?.last_update">
+          seen: <span class="value">{{selectedAircraft?.dynamic?.last_update}}s ago</span>
+        </span>
+        <span class="coordinates-info"
+              *ngIf="selectedAircraft?.dynamic?.altitude">
+          Pos.: <span class="value">{{selectedAircraft?.lat}}°,{{selectedAircraft?.lng}}°</span>
+        </span>
+        <span class="altitude-info"
+              *ngIf="selectedAircraft?.dynamic?.altitude">
+          Baro. Altitude: <span class="value">{{selectedAircraft?.dynamic?.altitude}}ft</span>
+        </span>
+        <span class="geom-rate-info"
+              *ngIf="selectedAircraft?.dynamic?.geom_rate">
+          Vert. Rate: <span class="value">{{selectedAircraft?.dynamic?.geom_rate}}ft/min</span>
+        </span>
+        <span class="ground-speed-info"
+              *ngIf="selectedAircraft?.dynamic?.gs">
+          Groundspeed: <span class="value">{{selectedAircraft?.dynamic?.gs}}kts</span>
+        </span>
+        <span class="heading-info"
+              *ngIf="selectedAircraft?.heading">
+          Track: <span class="value">{{selectedAircraft?.heading}}°</span>
+        </span>
+
+
 
 
       </div>
 
-      <div class="bottom">
-        <ion-button class="my-location-button"
-                    color="primary"
-                    shape="round"
-                    [ngClass]="{'flight-view': flightView}"
-                    (click)="getCurrentLocation()"><ion-icon class="geolocation-icon"
-                    name="navigate-outline"></ion-icon></ion-button>
+      <ion-button class="my-location-button"
+                  color="primary"
+                  shape="round"
+                  [ngClass]="{'flight-view': flightView}"
+                  (click)="getCurrentLocation()"><ion-icon class="geolocation-icon"
+                  name="navigate-outline"></ion-icon></ion-button>
 
-        <div class="card-container"
-             [ngClass]="{'flight-view': flightView, 'portrait': isPortrait}">
-          <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>
-        </div>
+      <div class="card-container"
+           [ngClass]="{'flight-view': flightView, 'portrait': isPortrait}">
+        <app-airplane-card [aircraft]="selectedAircraft"></app-airplane-card>
+
       </div>
 
 
