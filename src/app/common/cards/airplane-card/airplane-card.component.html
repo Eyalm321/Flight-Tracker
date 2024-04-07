@@ -1,9 +1,14 @@
 <div class="card flight-card">
-  <img alt="Aircraft"
-       [src]="image ? image : loadDefaultImage()"
-       (error)="loadDefaultImage()"
-       class="flight-image" />
-
+  <div class="image-container">
+    <div class="spinner-container">
+      <ion-spinner *ngIf="!imageLoaded"
+                   name="dots"></ion-spinner>
+    </div>
+    <img alt="Aircraft"
+         [src]="image ? image : loadDefaultImage()"
+         (load)="onImageLoad($event)"
+         class="flight-image" />
+  </div>
   <ion-card-header class="flight-header">
     <div class="filight-info">
       <ion-card-title>Flight {{ aircraft?.flightDetails?.flightNumber }} - {{

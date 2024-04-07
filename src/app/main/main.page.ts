@@ -1,20 +1,20 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter } from '@ionic/angular/standalone';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
-import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
-import { AdsbService, Aircraft } from '../shared/services/adsb.service';
+import { MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
+import { AdsbService } from '../shared/services/adsb.service';
 import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
-import { EMPTY, Observable, Subject, catchError, combineLatest, forkJoin, map, mergeMap, of, take, takeUntil, tap } from 'rxjs';
-import { routes } from '../app.routes';
-import { IonicModule } from '@ionic/angular';
+import { EMPTY, Observable, Subject, catchError, combineLatest, map, of, take, takeUntil, tap } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { ThemeWatcherService } from '../shared/services/theme-watcher.service';
 import { OrientationService } from '../shared/services/orientation.service';
 import { GeolocationService } from '../shared/services/geolocation.service';
+import { InfoContainerComponent } from '../common/info-container/info-container.component';
+import { ToastController, LoadingController } from '@ionic/angular';
 
 
-export interface selectedAircraft extends MarkerProps {
+export interface SelectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
   originAirport?: { iata: string, name: string, location: string; };
   destinationAirport?: { iata: string, name: string, location: string; };
@@ -25,15 +25,18 @@ export interface selectedAircraft extends MarkerProps {
   selector: 'app-main',
   templateUrl: 'main.page.html',
   styleUrls: ['main.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter],
+  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonToast, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, InfoContainerComponent],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
-  selectedAircraft?: selectedAircraft;
+  selectedAircraft?: SelectedAircraft;
   flightView: boolean = false;
   isLoading = false;
   isPortrait = this.orientationService.getCurrentOrientation() === 'portrait';
+  numVisiblePlanes = 0;
+
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
   private destroy$ = new Subject<void>();
@@ -51,7 +54,9 @@ export class MainPage implements AfterViewInit, OnDestroy {
     private themeWatcherService: ThemeWatcherService,
     private orientationService: OrientationService,
     private cdr: ChangeDetectorRef,
-    private geolocationService: GeolocationService) { }
+    private geolocationService: GeolocationService,
+    private toastController: ToastController,
+    private loadingController: LoadingController) { }
 
   async ngAfterViewInit(): Promise<void> {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -72,6 +77,13 @@ export class MainPage implements AfterViewInit, OnDestroy {
       console.log('Orientation changed:', orientation);
 
     });
+  }
+
+  updateNumOfVisiblePlanes(): void {
+    const num = this.mapMarkerService.getVisibleMarkersAmount();
+    if (!num || num === 0) return;
+    this.numVisiblePlanes = num;
+    this.cdr.detectChanges();
   }
 
   async getCurrentLocation() {
@@ -117,38 +129,51 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private listenToMarkerClicks(): void {
     this.mapMarkerService.markerClicked$.subscribe(marker => this.handleMarkerClick(marker));
   }
+  async handleMarkerClick(marker: MarkerProps): Promise<void> {
+    // Create and present the loading indicator
+    const loading = await this.loadingController.create({
+      spinner: 'dots',
+      cssClass: 'loading-indicator',
+      showBackdrop: false,
+    });
 
-  handleMarkerClick(marker: MarkerProps): void {
-    clearInterval(this.updateInterval);
-    this.selectedAircraft = marker;
+    try {
+      clearInterval(this.updateInterval);
+      this.selectedAircraft = marker;
+      this.flightView = true;
+      this.cdr.detectChanges();
 
-    if (marker.lat && marker.lng) {
-      this.mapDataService.centerMapByLatLng(marker.lat, marker.lng, this.flightView);
+      if (marker.lat && marker.lng) {
+        this.mapDataService.centerMapByLatLng(marker.lat, marker.lng, this.flightView);
+      }
+      await this.createAircraftRoute(marker);
+      this.mapMarkerService.clearAllOtherMarkers(marker.id);
+      this.mapInstance?.setZoom(10);
+
+      // Assuming getAircraftPropsByIcao is an asynchronous operation,
+      // you need to ensure it's completed before dismissing the loading
+      this.updateInterval = setInterval(async () => {
+        const data = await this.getAircraftPropsByIcao(marker.id).toPromise(); // assuming this is an Observable
+        const selectedMarker = this.mapMarkerService.getSelectedMarker();
+        this.cdr.detectChanges();
+        if (!selectedMarker || !data) {
+          return;
+        }
+        console.log('Updating dynamic data:', data);
+        this.updateDynamicData(data);
+        this.mapDataService.centerMapByLatLng(data.lat, data.lng, this.flightView);
+        this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
+        this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
+      }, 3000);
+    } catch (error) {
+      console.error('Error handling marker click:', error);
+    } finally {
+      // // Dismiss the loading indicator at the end of all operations
+      // await loading.dismiss();
     }
-
-    this.createAircraftRoute(marker);
-    this.mapMarkerService.clearAllOtherMarkers(marker.id);
-    this.mapInstance?.setZoom(10);
-    this.flightView = true;
-
-    this.updateInterval = setInterval(() => {
-      this.getAircraftPropsByIcao(marker.id)
-        .subscribe(data => {
-          const selectedMarker = this.mapMarkerService.getSelectedMarker();
-          this.cdr.detectChanges();
-          if (!selectedMarker) return;
-          console.log('Updating dynamic data:', data);
-          this.updateDynamicData(data);
-          this.mapDataService.centerMapByLatLng(data.lat, data.lng, this.flightView);
-          this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
-          this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
-
-        });
-    }, 3000);
-
   }
 
-  private updateDynamicData(props: selectedAircraft): void {
+  private updateDynamicData(props: SelectedAircraft): void {
     this.selectedAircraft = { ...this.selectedAircraft, ...props };
   }
 
@@ -182,6 +207,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
   private setupAllPlanesUpdates(): void {
     this.updateInterval = setInterval(() => {
       this.updatePlanesInView();
+      this.updateNumOfVisiblePlanes();
     }, 4000);
   }
 
@@ -251,9 +277,26 @@ export class MainPage implements AfterViewInit, OnDestroy {
   }
 
   createAircraftRoute(marker: MarkerProps): void {
+    const presentToast = async (position: 'top' | 'bottom' | 'middle', message: string) => {
+      const toast = this.toastController.create({
+        message,
+        duration: 5000,
+        position,
+        color: 'warning',
+      });
+
+      (await toast).present();
+    };
+
     this.adsbService.getAircraftsRouteset([{ callsign: marker.title, lat: marker.lat, lon: marker.lng }])
       .pipe(
         take(1),
+        tap(async routes => {
+          if (!this.selectedAircraft || routes.length === 0 || routes[0]._airports.length < 2) {
+            await presentToast('top', 'No route data found'); // Simplify toast call for demonstration
+            throw new Error('No route data found'); // This will be caught by catchError
+          }
+        }),
         tap(routes => {
           if (!this.selectedAircraft) return;
           this.selectedAircraft.flightDetails = {
@@ -273,28 +316,24 @@ export class MainPage implements AfterViewInit, OnDestroy {
           };
         }),
         map(routes => {
-          if (!routes[0]?._airports || routes[0]._airports.length < 2) {
-            throw new Error('Invalid route data received');
-          }
-          // Using optional chaining and providing a fallback value
-          const origin = {
-            lat: routes[0]._airports[0]?.lat ?? 0,
-            lng: routes[0]._airports[0]?.lon ?? 0,
-          };
-          const destination = {
-            lat: routes[0]._airports[1]?.lat ?? 0,
-            lng: routes[0]._airports[1]?.lon ?? 0,
-          };
+          // Assuming previous conditions are met, we can safely access the airports
+          const origin = { lat: routes[0]._airports[0].lat, lng: routes[0]._airports[0].lon };
+          const destination = { lat: routes[0]._airports[1].lat, lng: routes[0]._airports[1].lon };
           return { origin, destination };
         }),
-        catchError(error => {
-          console.error('Error fetching aircraft route:', error);
+        catchError(async error => {
+          console.log('Error fetching route data:', error);
+
+          await presentToast('top', 'Failed to fetch route data'); // Simplify toast call for demonstration
           return EMPTY;
         })
       )
       .subscribe({
-        next: (route) => {
-          this.addFlightpathPolyline(route.origin, route.destination, { lat: marker.lat, lng: marker.lng });
+        next: (route: { origin: { lat: number; lng: number; }; destination: { lat: number; lng: number; }; } | Observable<never>) => {
+          if ('origin' in route && 'destination' in route) {
+            const { origin, destination } = route;
+            this.addFlightpathPolyline(origin, destination, { lat: marker.lat, lng: marker.lng });
+          }
         },
         error: (error) => {
           console.error('Unexpected error:', error);
@@ -314,6 +353,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     clearInterval(this.updateInterval);
     this.flightView = false;
     this.selectedAircraft = undefined;
+    this.cdr.detectChanges();
     this.updatePlanesInView();
     this.setupAllPlanesUpdates();
     this.mapDataService.clearPolyline();

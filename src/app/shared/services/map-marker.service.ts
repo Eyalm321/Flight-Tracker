@@ -97,6 +97,10 @@ export class MapMarkerService {
     this.markerClickedSubject.next(marker);
   }
 
+  getVisibleMarkersAmount(): number {
+    return Object.values(this.markers).length;
+  }
+
   getSelectedMarker(): ExtendedMarker | undefined {
     return this.selectedMarker;
   }

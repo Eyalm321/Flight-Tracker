@@ -3,6 +3,7 @@
 
 /** Ionic CSS Variables **/
 :root {
+
   --ion-safe-area-top: env(safe-area-inset-top);
   --ion-safe-area-bottom: env(safe-area-inset-bottom, 0);
   --ion-safe-area-left: env(safe-area-inset-left, 0);
