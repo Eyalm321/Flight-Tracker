@@ -36,8 +36,6 @@ ion-content {
 
   .my-location-button {
     pointer-events: all;
-    padding-bottom: 12px;
-    padding-right: 12px;
 
     ion-fab-button {
       --color: --ion-text-color;
@@ -56,6 +54,7 @@ ion-content {
 }
 
 @media (orientation: landscape) {
+
   .card-container {
     max-width: 0;
 
@@ -68,6 +67,11 @@ ion-content {
 }
 
 @media (orientation: portrait) {
+  .my-location-button {
+    padding-bottom: 18px;
+    padding-right: 18px;
+  }
+
   .card-container {
     bottom: 0;
     right: auto;
