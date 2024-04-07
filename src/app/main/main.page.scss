@@ -36,6 +36,7 @@ ion-content {
 
   .my-location-button {
     pointer-events: all;
+    margin-bottom: var(--ion-safe-area-bottom, 0);
 
     ion-fab-button {
       --color: --ion-text-color;
@@ -67,11 +68,6 @@ ion-content {
 }
 
 @media (orientation: portrait) {
-  .my-location-button {
-    padding-bottom: 18px;
-    padding-right: 18px;
-  }
-
   .card-container {
     bottom: 0;
     right: auto;
