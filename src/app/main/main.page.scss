@@ -70,11 +70,12 @@ ion-content {
     bottom: 0;
     right: auto;
     max-height: 0;
+    align-self: end;
+    width: 100%;
 
     &.flight-view {
       max-height: 45vh;
       margin-bottom: max(34px, var(--ion-safe-area-bottom));
-      width: 100%;
       justify-content: center;
     }
   }
