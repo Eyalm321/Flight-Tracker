@@ -130,13 +130,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.mapMarkerService.markerClicked$.subscribe(marker => this.handleMarkerClick(marker));
   }
   async handleMarkerClick(marker: MarkerProps): Promise<void> {
-    // Create and present the loading indicator
-    const loading = await this.loadingController.create({
-      spinner: 'dots',
-      cssClass: 'loading-indicator',
-      showBackdrop: false,
-    });
-
     try {
       clearInterval(this.updateInterval);
       this.selectedAircraft = marker;
@@ -167,9 +160,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
       }, 3000);
     } catch (error) {
       console.error('Error handling marker click:', error);
-    } finally {
-      // // Dismiss the loading indicator at the end of all operations
-      // await loading.dismiss();
     }
   }
 
