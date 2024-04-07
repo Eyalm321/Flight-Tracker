@@ -46,7 +46,8 @@ export class MapMarkerService {
         map: mapInstance,
         title: props.title,
         content: svgElement,
-        zIndex: 1000
+        zIndex: 1000,
+        collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL
       }) as ExtendedMarker;
 
       // Apply additional properties to the marker
@@ -56,7 +57,7 @@ export class MapMarkerService {
         heading: props.heading,
         model: props.model
       });
-
+      marker.classList.add('map-marker');
       marker.addListener('click', () => this.onClickMarker(props));
       return marker;
     } catch (error) {
