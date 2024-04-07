@@ -68,6 +68,10 @@ ion-content {
 }
 
 @media (orientation: portrait) {
+  .my-location-button {
+    padding: 12px;
+  }
+
   .card-container {
     bottom: 0;
     right: auto;
