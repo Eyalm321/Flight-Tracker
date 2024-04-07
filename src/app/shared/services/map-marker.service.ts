@@ -57,7 +57,6 @@ export class MapMarkerService {
         heading: props.heading,
         model: props.model
       });
-      marker.classList.add('map-marker');
       marker.addListener('click', () => this.onClickMarker(props));
       return marker;
     } catch (error) {
@@ -94,8 +93,6 @@ export class MapMarkerService {
   }
 
   private onClickMarker(marker: MarkerProps): void {
-    console.log('Marker clicked:', marker);
-
     this.selectedMarker = this.markers[marker.id];
     this.markerClickedSubject.next(marker);
   }

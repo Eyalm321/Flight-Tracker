@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast, IonCard } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
@@ -27,7 +27,7 @@ export interface SelectedAircraft extends MarkerProps {
   styleUrls: ['main.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonToast, IonButton, IonCard, AirplaneCardComponent, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, InfoContainerComponent],
+  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonToast, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, InfoContainerComponent],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;

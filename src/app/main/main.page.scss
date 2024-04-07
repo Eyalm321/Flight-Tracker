@@ -45,7 +45,7 @@ ion-content {
   .num-of-planes {
     height: fit-content;
     color: var(--ion-color-primary-tint);
-    background-color: var(--ion-card-background);
+    background-color: var(--ion-background-color, #fff);
     border-radius: 25px;
     font-weight: 500;
     width: fit-content;
