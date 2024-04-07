@@ -19,7 +19,7 @@ ion-content {
   ion-fab-button {
     --background: none;
     --color: --ion-text-color;
-    box-shadow: none;
+    --box-shadow: none;
   }
 }
 
@@ -31,9 +31,8 @@ ion-content {
   position: absolute;
   pointer-events: none;
   z-index: 1000;
-  display: flex;
+  display: grid;
   flex-wrap: wrap;
-  justify-content: center;
 
   .my-location-button {
     pointer-events: all;
@@ -49,38 +48,19 @@ ion-content {
     background-color: var(--ion-card-background);
     border-radius: 25px;
     font-weight: 500;
+    width: fit-content;
+    justify-self: center;
   }
 }
 
 @media (orientation: landscape) {
   .card-container {
-    top: 0;
-    bottom: 0;
-    right: 0;
     max-width: 0;
 
     &.flight-view {
       max-width: 100%;
       min-width: 320px;
-      margin-right: 50px;
-      height: 100%;
       align-items: center;
-      top: auto;
-    }
-  }
-
-  .ui-overlay {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    pointer-events: none;
-    z-index: 1000;
-    display: grid;
-    flex-direction: column;
-
-    .card-container {
-      grid-column: 3;
-      grid-row: 1 / 3;
     }
   }
 }
