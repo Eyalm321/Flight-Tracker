@@ -94,6 +94,8 @@ export class MapMarkerService {
   }
 
   private onClickMarker(marker: MarkerProps): void {
+    console.log('Marker clicked:', marker);
+
     this.selectedMarker = this.markers[marker.id];
     this.markerClickedSubject.next(marker);
   }
