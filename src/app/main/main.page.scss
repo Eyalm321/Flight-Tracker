@@ -36,7 +36,8 @@ ion-content {
 
   .my-location-button {
     pointer-events: all;
-    padding-bottom: var(--ion-safe-area-bottom);
+    padding-bottom: var(--ion-safe-area-bottom, 12px);
+    padding-right: var(--ion-safe-area-right, 12px);
 
     ion-fab-button {
       --color: --ion-text-color;
