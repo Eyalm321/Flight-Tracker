@@ -92,4 +92,10 @@
     :host {
         justify-content: flex-end;
     }
+
+    .flight-card {
+        margin-bottom: var(--ion-safe-area-bottom);
+        margin-top: var(--ion-safe-area-top);
+        margin-right: var(--ion-safe-area-right);
+    }
 }
