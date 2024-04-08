@@ -5,3 +5,23 @@ ion-card {
     margin-left: calc(max(10px, var(--ion-safe-area-left)));
     margin-right: calc(max(10px, var(--ion-safe-area-right)));
 }
+
+.index-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+
+    .i {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        img {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+
+}
