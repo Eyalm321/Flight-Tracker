@@ -12,6 +12,7 @@ import { OrientationService } from '../shared/services/orientation.service';
 import { GeolocationService } from '../shared/services/geolocation.service';
 import { AirplaneStatsCardComponent } from '../common/cards/airplane-stats-card/airplane-stats-card';
 import { ToastController } from '@ionic/angular';
+import { AboutPage } from '../about/about.page';
 export interface SelectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
   originAirport?: { iata: string, name: string, location: string; };
@@ -40,7 +41,8 @@ export interface SelectedAircraft extends MarkerProps {
     IonFabList,
     AirplaneCardComponent,
     AirplaneStatsCardComponent,
-    IonNav
+    IonNav,
+    AboutPage
   ],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
