@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, catchError, filter, of, switchMap, take, tap } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AirplaneDataService } from './airplane-data.service';
 
@@ -36,34 +36,37 @@ export class MapMarkerService {
   private markerSize = 24;
   constructor(private gmapsService: GmapsService, private mapDataService: MapDataService, private sanitizer: DomSanitizer, private airplaneDataService: AirplaneDataService) { }
 
-  async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
-    try {
-      await this.gmapsService.loadMarkerLibrary();
+  createMarker(props: MarkerProps, mapInstance: google.maps.Map): Observable<ExtendedMarker | undefined> {
+    return this.gmapsService.markerApiLoaded$.pipe(
+      take(1),
+      switchMap(() => {
+        console.log('Creating marker:', props);
 
-      // Pre-configure the SVG element's properties to minimize reflows and repaints
-      const svgElement = this.prepareSvgElement(props);
+        const svgElement = this.prepareSvgElement(props);
 
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        position: new google.maps.LatLng(props.lat, props.lng),
-        map: mapInstance,
-        title: props.title,
-        content: svgElement,
-        zIndex: 1000,
-      }) as ExtendedMarker;
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          position: new google.maps.LatLng(props.lat, props.lng),
+          map: mapInstance,
+          title: props.title,
+          content: svgElement,
+          zIndex: 1000,
+        }) as ExtendedMarker;
 
-      // Apply additional properties to the marker
-      Object.assign(marker, {
-        id: props.id,
-        style: { cursor: 'pointer' },
-        heading: props.heading,
-        model: props.model
-      });
-      marker.addListener('click', () => this.onClickMarker(props));
-      return marker;
-    } catch (error) {
-      console.error('Error initializing the Marker library:', error);
-    }
-    return undefined;
+        // Apply additional properties to the marker
+        Object.assign(marker, {
+          id: props.id,
+          style: { cursor: 'pointer' },
+          heading: props.heading,
+          model: props.model
+        });
+        marker.addListener('click', () => this.onClickMarker(props));
+        return of(marker);
+      }),
+      catchError(error => {
+        console.error('Error creating marker:', error);
+        return of(undefined);
+      })
+    );
   }
 
   // Refactored out SVG element preparation to its own method
@@ -132,7 +135,7 @@ export class MapMarkerService {
     }
   }
 
-  async addOrUpdateMarker(markerProps: MarkerProps) {
+  addOrUpdateMarker(markerProps: MarkerProps): void {
     if (!markerProps.lat || !markerProps.lng) return;
     const existingMarker = this.markers[markerProps.id];
     if (existingMarker) {
@@ -149,10 +152,13 @@ export class MapMarkerService {
     } else {
       const mapInstance = this.mapDataService.getMapInstance();
       if (mapInstance) {
-        const newMarker = await this.createMarker(markerProps, mapInstance);
-        if (newMarker) {
-          this.markers[markerProps.id] = newMarker;
-        }
+        this.createMarker(markerProps, mapInstance).pipe(
+          take(1),
+          filter(newMarker => !!newMarker),
+          tap(newMarker => console.log('New marker created:', newMarker)))
+          .subscribe(
+            marker => this.markers[markerProps.id] = marker as ExtendedMarker,
+          );
       }
     }
   }
@@ -200,13 +206,13 @@ export class MapMarkerService {
     requestAnimationFrame(animate);
   }
 
-  async updateMarkers(markerPropsArray: MarkerProps[]): Promise<void> {
+  updateMarkers(markerPropsArray: MarkerProps[]): void {
     // Create a set of new data IDs for easier lookup
     const newDataIds = new Set(markerPropsArray.map(props => props.id));
 
     // Add or update markers based on the new data
     for (const markerProps of markerPropsArray) {
-      await this.addOrUpdateMarker(markerProps);
+      this.addOrUpdateMarker(markerProps);
     }
 
     // Identify markers to remove (those not in the new data)

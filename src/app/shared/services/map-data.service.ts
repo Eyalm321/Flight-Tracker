@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
-import { first, of, switchMap } from 'rxjs';
+import { Observable, catchError, first, map, of, switchMap } from 'rxjs';
 import { ThemeWatcherService } from './theme-watcher.service';
 import { OrientationService } from './orientation.service';
 import { GeolocationService } from './geolocation.service';
@@ -33,35 +33,32 @@ export class MapDataService {
     return this.polyline;
   }
 
-  async initializeMap(element: HTMLElement, isDarkTheme: boolean): Promise<google.maps.Map | undefined> {
-    return new Promise((resolve, reject) => {
-      this.gmapsService.mapApiLoaded$.pipe(
-        first(isLoaded => isLoaded),
-        switchMap(async () => {
-          await this.geolocationService.getCurrentPosition().then(position => {
-            if (!this.mapOptions || !position) return;
-            this.mapOptions.center = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-          });
-          try {
-            console.log('Center:', this.mapOptions?.center);
+  initializeMap(element: HTMLElement, isDarkTheme: boolean): Observable<google.maps.Map | undefined> {
+    return this.gmapsService.mapApiLoaded$.pipe(
+      first(isLoaded => isLoaded),
+      switchMap(() => this.geolocationService.getCurrentPosition()),
+      map(position => {
+        console.log('Position:', position);
 
-            if (!this.mapOptions) return of(null);
-            this.mapOptions.mapId = isDarkTheme ? this.mapId.dark : this.mapId.light;
-            const mapInstance = new google.maps.Map(element, this.mapOptions);
+        if (!this.mapOptions || !position) return undefined;
+        this.mapOptions.center = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
-            this.mapInstance = mapInstance;
+        console.log('Center:', this.mapOptions?.center);
 
-            resolve(mapInstance);
+        if (!this.mapOptions) return undefined;
+        this.mapOptions.mapId = isDarkTheme ? this.mapId.dark : this.mapId.light;
+        const mapInstance = new google.maps.Map(element, this.mapOptions);
 
-            return of(null); // Add this line to return an observable
-          } catch (error) {
-            console.error('Error initializing the Maps library:', error);
-            reject(error);
-            return of(null); // Add this line to return an observable
-          }
-        })
-      ).subscribe();
-    });
+        this.mapInstance = mapInstance;
+        console.log('Map instance:', mapInstance);
+
+        return mapInstance;
+      }),
+      catchError(error => {
+        console.error('Error initializing the Maps library:', error);
+        throw error;
+      })
+    );
   }
 
 

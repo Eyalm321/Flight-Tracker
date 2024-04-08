@@ -1,10 +1,10 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast, IonChip } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
-import { MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
+import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
 import { AirplaneCardComponent } from '../common/cards/airplane-card/airplane-card.component';
-import { EMPTY, Observable, Subject, catchError, combineLatest, map, of, take, takeUntil, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, combineLatest, filter, finalize, firstValueFrom, map, of, switchMap, take, takeUntil, tap } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { ThemeWatcherService } from '../shared/services/theme-watcher.service';
@@ -59,25 +59,31 @@ export class MainPage implements AfterViewInit, OnDestroy {
     private toastController: ToastController,
     private loadingController: LoadingController) { }
 
-  async ngAfterViewInit(): Promise<void> {
+  ngAfterViewInit(): void {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
-    this.mapInstance = await this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, isDarkTheme.matches);
+    this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, isDarkTheme.matches).pipe(
+      take(1)
+    ).subscribe((instance) => {
+      console.log('Map instance:', instance);
 
-    setTimeout(() => {
-      this.updatePlanesInView();
+      if (!instance) return;
+      this.mapInstance = instance;
+      setTimeout(() => {
+        this.updatePlanesInView();
 
-    }, 500);
-    this.updateCurrentLocation();
-    this.setupAllPlanesUpdates();
-    this.listenToMarkerClicks();
-    this.listenToThemeChanges();
-    this.orientationService.getOrientationChange().subscribe((orientation) => {
-      this.isPortrait = orientation === 'portrait';
-      if (this.selectedAircraft) {
-        this.mapDataService.centerMapByLatLng(this.selectedAircraft.lat, this.selectedAircraft.lng, this.flightView);
-      }
-      console.log('Orientation changed:', orientation);
+      }, 500);
+      this.updateCurrentLocation();
+      this.setupAllPlanesUpdates();
+      this.listenToMarkerClicks();
+      this.listenToThemeChanges();
+      this.orientationService.getOrientationChange().subscribe((orientation) => {
+        this.isPortrait = orientation === 'portrait';
+        if (this.selectedAircraft) {
+          this.mapDataService.centerMapByLatLng(this.selectedAircraft.lat, this.selectedAircraft.lng, this.flightView);
+        }
+        console.log('Orientation changed:', orientation);
 
+      });
     });
   }
 
@@ -92,12 +98,19 @@ export class MainPage implements AfterViewInit, OnDestroy {
   async updateCurrentLocation() {
     console.log('Updating current location');
 
-    const position = await this.geolocationService.getCurrentPosition();
-    console.log('Position:', position);
-
-    if (!position) return;
-    this.mapMarkerService.updateMyPositionMarker(position.coords.latitude, position.coords.longitude);
-    this.mapDataService.centerMapByLatLng(position.coords.latitude, position.coords.longitude, this.flightView);
+    this.geolocationService.getCurrentPosition().pipe(
+      take(1),
+      filter(position => !!position),
+      tap(position => {
+        this.mapMarkerService.createMyPositionMarker(position.coords.latitude, position.coords.longitude);
+      }),
+      catchError(() => {
+        console.error('Error getting current position');
+        return EMPTY;
+      })
+    ).subscribe(position => {
+      this.mapDataService.centerMapByLatLng(position.coords.latitude, position.coords.longitude, this.flightView);
+    });
   }
 
   ngOnDestroy(): void {
@@ -109,54 +122,51 @@ export class MainPage implements AfterViewInit, OnDestroy {
   }
 
   private listenToThemeChanges(): void {
-    this.themeWatcherService.themeChanged$.subscribe(darkMode => {
-      console.log('Dark mode changed:', darkMode);
-
-      this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, darkMode).then(mapInstance => {
-        if (this.mapInstance) {
-          this.mapMarkerService.clearAllMarkers();
-          this.mapDataService.clearPolyline();
-          this.mapInstance.unbindAll();
-        }
-        this.mapInstance = mapInstance;
+    this.themeWatcherService.themeChanged$.pipe(
+      switchMap(darkMode => {
+        console.log('Dark mode changed:', darkMode);
+        return this.mapDataService.initializeMap(this.mapContainerRef.nativeElement, darkMode).pipe(
+          take(1),
+          filter(instance => !!instance),
+          tap(_ => {
+            this.mapMarkerService.clearAllMarkers();
+            this.mapDataService.clearPolyline();
+            this.mapInstance?.unbindAll();
+          })
+        );
+      }),
+      switchMap(instance => {
+        this.mapInstance = instance;
         if (this.selectedAircraft && this.mapInstance) {
-          this.mapMarkerService.createMarker(this.selectedAircraft, this.mapInstance).then((marker) => {
-            if (!marker || !this.selectedAircraft) return;
-            this.handleMarkerClick(this.selectedAircraft);
-            this.mapMarkerService.setSelectedMarker(marker);
-            return marker;
-          });
+          return this.mapMarkerService.createMarker(this.selectedAircraft, this.mapInstance).pipe(
+            map((marker: ExtendedMarker | undefined) => {
+              if (!marker || !this.selectedAircraft) return;
+              this.handleMarkerClick(this.selectedAircraft);
+              this.mapMarkerService.setSelectedMarker(marker);
+              return marker;
+            })
+          );
         } else if (this.mapInstance) {
           this.updatePlanesInView();
         }
+        return of(null);
+      }),
+      finalize(() => {
         this.mapMarkerService.removeMyPositionMarker();
         this.updateCurrentLocation();
-      }
-      );
-    });
+      })
+    ).subscribe();
   }
+
 
   private listenToMarkerClicks(): void {
     this.mapMarkerService.markerClicked$.subscribe(marker => this.handleMarkerClick(marker));
   }
-  async handleMarkerClick(marker: MarkerProps): Promise<void> {
-    try {
-      clearInterval(this.updateInterval);
-      this.selectedAircraft = marker;
-      this.flightView = true;
-      this.cdr.detectChanges();
 
-      if (marker.lat && marker.lng) {
-        this.mapDataService.centerMapByLatLng(marker.lat, marker.lng, this.flightView);
-      }
-      await this.createAircraftRoute(marker);
-      this.mapMarkerService.clearAllOtherMarkers(marker.id);
-      this.mapInstance?.setZoom(10);
-
-      // Assuming getAircraftPropsByIcao is an asynchronous operation,
-      // you need to ensure it's completed before dismissing the loading
-      this.updateInterval = setInterval(async () => {
-        const data = await this.getAircraftPropsByIcao(marker.id).toPromise(); // assuming this is an Observable
+  handleMarkerClick(marker: MarkerProps): void {
+    if (!marker.lat || !marker.lng || !marker.id) return;
+    const getAircraftByIcao = () => {
+      this.getAircraftPropsByIcao(marker.id).subscribe(data => {
         const selectedMarker = this.mapMarkerService.getSelectedMarker();
         this.cdr.detectChanges();
         if (!selectedMarker || !data) {
@@ -167,10 +177,21 @@ export class MainPage implements AfterViewInit, OnDestroy {
         this.mapDataService.centerMapByLatLng(data.lat, data.lng, this.flightView);
         this.mapMarkerService.transitionMarkerPosition(selectedMarker, data.lat, data.lng, data.heading);
         this.mapMarkerService.changePathMiddleWaypoints([{ lat: data.lat, lng: data.lng }]);
-      }, 3000);
-    } catch (error) {
-      console.error('Error handling marker click:', error);
-    }
+      });
+    };
+
+    clearInterval(this.updateInterval);
+    this.selectedAircraft = marker;
+    this.flightView = true;
+    this.cdr.detectChanges();
+
+
+    this.createAircraftRoute(marker);
+    this.mapMarkerService.clearAllOtherMarkers(marker.id);
+    this.mapInstance?.setZoom(10);
+    this.updateInterval = setInterval(() => {
+      getAircraftByIcao();
+    }, 3000);
   }
 
   private updateDynamicData(props: SelectedAircraft): void {
@@ -228,6 +249,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
       return;
     }
 
+    console.log('Bounds:', bounds);
 
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Loader } from '@googlemaps/js-api-loader';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, firstValueFrom, from, of, take } from 'rxjs';
 import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
@@ -15,8 +15,11 @@ export class GmapsService {
   markerApiLoaded$ = this.markerApiLoaded.asObservable();
 
   constructor() {
-    this.loadMapsLibrary();
-    this.loadMarkerLibrary();
+    this.loadLibrary('maps')?.subscribe(() => {
+      console.log('Maps library loaded');
+
+    });
+    this.loadLibrary('marker')?.subscribe();
   }
 
   private async getLoader(): Promise<Loader> {
@@ -30,17 +33,26 @@ export class GmapsService {
     return this.loader;
   }
 
-  public async loadMapsLibrary(): Promise<void> {
-    if (!this.mapsApiLoaded.value) {
-      await (await this.getLoader()).importLibrary("maps");
-      this.mapsApiLoaded.next(true);
+  loadLibrary(libraryName: 'maps' | 'marker'): Observable<void> {
+    const apiLoadedSubject = libraryName === 'maps' ? this.mapsApiLoaded : this.markerApiLoaded;
+
+    if (!apiLoadedSubject.value) {
+      return new Observable<void>(observer => {
+        (async () => {
+          try {
+            await (await this.getLoader()).importLibrary(libraryName);
+            apiLoadedSubject.next(true);
+            observer.next();
+            observer.complete();
+          } catch (error) {
+            console.error(`Error loading ${libraryName} library:`, error);
+            observer.error(error);
+          }
+        })();
+      });
     }
+
+    return of();
   }
 
-  public async loadMarkerLibrary(): Promise<void> {
-    if (!this.markerApiLoaded.value) {
-      await (await this.getLoader()).importLibrary("marker");
-      this.markerApiLoaded.next(true);
-    }
-  }
 }
