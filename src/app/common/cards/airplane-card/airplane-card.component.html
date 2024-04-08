@@ -5,7 +5,7 @@
                    name="dots"></ion-spinner>
     </div>
     <img alt="Aircraft"
-         [src]="image ? image : loadDefaultImage()"
+         [src]="image"
          (load)="onImageLoad($event)"
          class="flight-image" />
   </div>

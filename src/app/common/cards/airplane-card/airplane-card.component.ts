@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonSpinner } from '@ionic/angular/standalone';
 import { SelectedAircraft } from 'src/app/main/main.page';
-import { CardImageManagerService } from 'src/app/shared/services/card-image-manager.service';
+import { AirplaneDataService } from 'src/app/shared/services/airplane-data.service';
 import { MarkerProps } from 'src/app/shared/services/map-marker.service';
 
 @Component({
@@ -12,18 +12,20 @@ import { MarkerProps } from 'src/app/shared/services/map-marker.service';
   standalone: true,
   imports: [CommonModule, IonSpinner, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCard]
 })
-export class AirplaneCardComponent {
+export class AirplaneCardComponent implements OnChanges {
   @Input() aircraft?: SelectedAircraft;
   image?: string;
   imageLoaded = false;
-  constructor(private cardImageManagerService: CardImageManagerService, private cdr: ChangeDetectorRef) {
+  constructor(private airplaneDataService: AirplaneDataService, private cdr: ChangeDetectorRef) {
     if (this.aircraft) {
-      this.image = this.cardImageManagerService.retrieveAirplaneImage(this.aircraft.model);
+      this.image = this.airplaneDataService.retrieveAirplaneImage(this.aircraft.model);
     }
   }
 
-  loadDefaultImage(): void {
-    if (this.aircraft) this.image = this.cardImageManagerService.getDefaultImage(this.aircraft?.model);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['aircraft'] && changes['aircraft'].currentValue && this.aircraft) {
+      this.image = this.airplaneDataService.retrieveAirplaneImage(this.aircraft.model);
+    }
   }
 
   onImageLoad(event: any): void {

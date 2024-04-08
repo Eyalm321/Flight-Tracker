@@ -36,6 +36,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
   isLoading = false;
   isPortrait = this.orientationService.getCurrentOrientation() === 'portrait';
   numVisiblePlanes = 0;
+  private positionMarker?: google.maps.marker.AdvancedMarkerElement;
 
   private mapInstance?: google.maps.Map;
   private updateInterval?: ReturnType<typeof setTimeout>;
@@ -43,8 +44,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
 
   icons = addIcons({
-    'arrow-back-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back-outline.svg',
-    'navigate-outline': 'https://unpkg.com/ionicons@7.1.0/dist/svg/navigate-outline.svg',
+    'arrow-back': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back.svg',
+    'navigate': 'https://unpkg.com/ionicons@7.1.0/dist/svg/navigate.svg',
   });
 
 
@@ -64,8 +65,9 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
     setTimeout(() => {
       this.updatePlanesInView();
-    }, 500);
 
+    }, 500);
+    this.updateCurrentLocation();
     this.setupAllPlanesUpdates();
     this.listenToMarkerClicks();
     this.listenToThemeChanges();
@@ -86,9 +88,15 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async getCurrentLocation() {
+
+  async updateCurrentLocation() {
+    console.log('Updating current location');
+
     const position = await this.geolocationService.getCurrentPosition();
+    console.log('Position:', position);
+
     if (!position) return;
+    this.mapMarkerService.updateMyPositionMarker(position.coords.latitude, position.coords.longitude);
     this.mapDataService.centerMapByLatLng(position.coords.latitude, position.coords.longitude, this.flightView);
   }
 
@@ -198,6 +206,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     this.updateInterval = setInterval(() => {
       this.updatePlanesInView();
       this.updateNumOfVisiblePlanes();
+      // this.mapMarkerService.printAircraftTypes();
     }, 4000);
   }
 
@@ -227,7 +236,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
       map(([allAircraftData, milAircraftData]) => {
         const allMapped = this.mapAircraftData(allAircraftData.ac, 'civilian');
         const milMapped = this.mapAircraftData(milAircraftData.ac, 'military');
-
+        this.isLoading = false;
         return this.mergeAndCategorizeAircrafts(allMapped, milMapped);
       }),
       takeUntil(this.destroy$) // Assuming destroy$ is a Subject that emits when component is destroyed
@@ -262,7 +271,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
         uniqueAircrafts.set(ac.id, ac);
       }
     });
-    this.isLoading = false;
     return Array.from(uniqueAircrafts.values());
   }
 

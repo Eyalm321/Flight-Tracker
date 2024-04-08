@@ -3,6 +3,7 @@ import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
 import { Observable, Subject } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
+import { AirplaneDataService } from './airplane-data.service';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
   id: string;
@@ -31,8 +32,9 @@ export class MapMarkerService {
 
   markerClicked$: Observable<MarkerProps> = this.markerClickedSubject.asObservable();
   selectedMarker?: ExtendedMarker;
+  private myPositionMarker?: google.maps.marker.AdvancedMarkerElement;
   private markerSize = 24;
-  constructor(private gmapsService: GmapsService, private mapDataService: MapDataService, private sanitizer: DomSanitizer) { }
+  constructor(private gmapsService: GmapsService, private mapDataService: MapDataService, private sanitizer: DomSanitizer, private airplaneDataService: AirplaneDataService) { }
 
   async createMarker(props: MarkerProps, mapInstance: google.maps.Map): Promise<ExtendedMarker | undefined> {
     try {
@@ -47,7 +49,6 @@ export class MapMarkerService {
         title: props.title,
         content: svgElement,
         zIndex: 1000,
-        collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL
       }) as ExtendedMarker;
 
       // Apply additional properties to the marker
@@ -68,7 +69,7 @@ export class MapMarkerService {
   // Refactored out SVG element preparation to its own method
   private prepareSvgElement(props: MarkerProps): HTMLElement {
     const svgElement = document.createElement('img');
-    svgElement.src = props._type === 'military' ? './assets/icons/airplane_green.svg' : './assets/icons/airplane_red.svg';
+    svgElement.src = this.airplaneDataService.getAircraftTypeMarkerIcon(props.model);
     const scale = this.getScaleByAltitude(props.altitude); // Fixed typo from 'Altitute' to 'Altitude'
     const size = this.markerSize;
 
@@ -256,8 +257,55 @@ export class MapMarkerService {
     airplaneElement.style.transform = `rotate(${heading}deg)`;
   }
 
-  printAllPlaneTypes(): void {
+  createMyPositionMarker(lat: number, lon: number): google.maps.marker.AdvancedMarkerElement | undefined {
+    const mapInstance = this.mapDataService.getMapInstance();
+    if (!mapInstance) {
+      console.error('Map instance not available');
+      return;
+    }
+    const size = 18;
+    const pinSvgPath = './assets/icons/blue-dot.svg';
+
+    const pinSvgElement = document.createElement('img');
+    pinSvgElement.src = pinSvgPath;
+    console.log(pinSvgElement);
+
+    Object.assign(pinSvgElement.style, {
+      width: `${size}px`,
+      height: `${size}px`,
+      position: 'absolute',
+      top: `${-size / 2}px`,
+      left: `${-size / 2}px`,
+    });
+
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      position: { lat, lng: lon },
+      map: mapInstance,
+      title: 'My Position',
+      zIndex: 1001,
+      content: pinSvgElement
+    });
+
+
+
+    return marker;
+  }
+
+  updateMyPositionMarker(lat: number, lon: number): void {
+    if (!this.myPositionMarker) {
+      this.myPositionMarker = this.createMyPositionMarker(lat, lon);
+      return;
+    } else {
+      this.myPositionMarker.position = { lat, lng: lon };
+    }
+  };
+
+  printAircraftTypes(): void {
     const types = Object.keys(this.markers).map(key => this.markers[key].model);
+    console.log('Aircraft types:', types);
+
 
   }
+
 }

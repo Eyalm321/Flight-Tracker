@@ -20,7 +20,7 @@
                (click)="onQuitFlightView()"
                class="arrow-back">
         <ion-fab-button>
-          <ion-icon name="arrow-back-outline"></ion-icon>
+          <ion-icon name="arrow-back"></ion-icon>
         </ion-fab-button>
       </ion-fab>
       <app-info-container [ngStyle]="{'visibility': selectedAircraft && selectedAircraft.dynamic ? 'visible' : 'hidden'}"
@@ -30,8 +30,8 @@
                vertical="bottom"
                horizontal="end"
                class="my-location-button">
-        <ion-fab-button>
-          <ion-icon name="navigate-outline"></ion-icon>
+        <ion-fab-button (click)="updateCurrentLocation()">
+          <ion-icon name="navigate"></ion-icon>
         </ion-fab-button>
       </ion-fab>
       <app-airplane-card class="card-container"
