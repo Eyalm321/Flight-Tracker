@@ -3,6 +3,8 @@
 
 /** Ionic CSS Variables **/
 :root {
+  --ion-padding: 16px;
+  --ion-padding-half: calc(var(--ion-padding) / 2);
   --ion-safe-area-top: env(safe-area-inset-top);
   --ion-safe-area-bottom: env(safe-area-inset-bottom, 0);
   --ion-safe-area-left: env(safe-area-inset-left, 0);

@@ -18,6 +18,8 @@
     letter-spacing: 0.6px;
     width: inherit;
     background: var(--background);
+    max-height: 75vh;
+
 
 
     .flight-info {
@@ -33,25 +35,23 @@
     .image-container {
         width: 100%;
         max-height: 150px;
-        display: grid;
-        grid-template-columns: repeat(3, 33.33%);
-        grid-template-rows: repeat(3, 33.33%);
+        flex-shrink: 3;
+        display: flex;
+        overflow: hidden;
+        position: relative;
 
         .flight-image {
             width: inherit;
-            height: 100%;
+            height: auto;
             object-fit: cover;
             visibility: hidden;
-            grid-column: 1 / 4;
-            grid-row: 1 / 4;
         }
 
         .spinner-container {
-            grid-row: 2;
-            grid-column: 2;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: absolute;
         }
     }
 
@@ -61,6 +61,18 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+    }
+
+    .flight-header,
+    .airport-info {
+        flex-shrink: 1;
+        /* Lower flex-shrink value than .image-container */
+    }
+
+    .flight-info,
+    .aircraft-info {
+        flex-shrink: 0;
+        /* These elements will not shrink */
     }
 
     .airport-info {
@@ -97,15 +109,19 @@
         margin-top: var(--ion-safe-area-top);
         margin-right: var(--ion-safe-area-right);
 
+        ion-card-header {
+            padding-left: var(--ion-padding);
+            padding-right: var(--ion-padding);
+            padding-top: var(--ion-padding);
+            padding-bottom: var(--ion-padding-half);
+        }
+
         .image-container {
             max-height: 125px;
         }
 
         ion-card-content {
-            --padding-start: calc(var(--ion-padding, 16px) / 2);
-            --padding-end: calc(var(--ion-padding, 16px) / 2);
-            --padding-top: calc(var(--ion-padding, 16px) / 2);
-            --padding-bottom: calc(var(--ion-padding, 16px) / 2);
+            padding: calc(var(--ion-padding) / 2) var(--ion-padding);
         }
     }
 }
