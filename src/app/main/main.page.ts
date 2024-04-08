@@ -41,8 +41,7 @@ export interface SelectedAircraft extends MarkerProps {
     IonFabList,
     AirplaneCardComponent,
     AirplaneStatsCardComponent,
-    IonNav,
-    AboutPage
+    IonNav
   ],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
