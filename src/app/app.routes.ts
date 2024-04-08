@@ -6,7 +6,7 @@ export const routes: Routes = [
     path: 'main',
     loadComponent: () => import('./nav/nav.component').then((c) => c.NavComponent),
   },
-  { path: 'main/about', component: AboutPage },
+  { path: 'main/about', loadComponent: () => import('./about/about.page').then((c) => c.AboutPage) },
   {
     path: '',
     redirectTo: 'main',
