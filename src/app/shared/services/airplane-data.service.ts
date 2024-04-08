@@ -121,8 +121,6 @@ export class AirplaneDataService {
     const imagePath = `assets/images/card/models/${airplaneModel}.png`;
     const imageExists = this.checkIfImageExists(imagePath);
     if (imageExists) {
-      console.log('Image exists:', imagePath);
-
       return imagePath;
     } else {
       return this.getDefaultImage(airplaneModel);
