@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, Inject, Input, OnChanges, OnDestroy, OnIn
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonSpinner } from '@ionic/angular/standalone';
 import { SelectedAircraft } from 'src/app/main/main.page';
 import { AirplaneDataService } from 'src/app/shared/services/airplane-data.service';
-import { MarkerProps } from 'src/app/shared/services/map-marker.service';
+import { MapMarkerService, MarkerProps } from 'src/app/shared/services/map-marker.service';
 
 @Component({
   selector: 'app-airplane-card',
@@ -12,20 +12,17 @@ import { MarkerProps } from 'src/app/shared/services/map-marker.service';
   standalone: true,
   imports: [CommonModule, IonSpinner, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCard]
 })
-export class AirplaneCardComponent implements OnChanges {
+export class AirplaneCardComponent implements OnInit {
   @Input() aircraft?: SelectedAircraft;
   image?: string;
   imageLoaded = false;
-  constructor(private airplaneDataService: AirplaneDataService, private cdr: ChangeDetectorRef) {
-    if (this.aircraft) {
-      this.image = this.airplaneDataService.retrieveAirplaneImage(this.aircraft.model);
-    }
-  }
+  constructor(private airplaneDataService: AirplaneDataService, private cdr: ChangeDetectorRef, private mapMarkerService: MapMarkerService) { }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['aircraft'] && changes['aircraft'].currentValue && this.aircraft) {
-      this.image = this.airplaneDataService.retrieveAirplaneImage(this.aircraft.model);
-    }
+  ngOnInit(): void {
+    this.mapMarkerService.markerClicked$.subscribe((markerProps: MarkerProps) => {
+      this.image = this.airplaneDataService.retrieveAirplaneImage(markerProps.model);
+      this.cdr.detectChanges();
+    });
   }
 
   onImageLoad(event: any): void {

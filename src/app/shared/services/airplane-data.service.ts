@@ -121,6 +121,8 @@ export class AirplaneDataService {
     const imagePath = `assets/images/card/models/${airplaneModel}.png`;
     const imageExists = this.checkIfImageExists(imagePath);
     if (imageExists) {
+      console.log('Image exists:', imagePath);
+
       return imagePath;
     } else {
       return this.getDefaultImage(airplaneModel);
@@ -128,10 +130,14 @@ export class AirplaneDataService {
   }
 
   private checkIfImageExists(imagePath: string): boolean {
-    const http = new XMLHttpRequest();
-    http.open('HEAD', imagePath, false);
-    http.send();
-    return http.status !== 404;
+    try {
+      const http = new XMLHttpRequest();
+      http.open('HEAD', imagePath, false);
+      http.send();
+      return http.status !== 404;
+    } catch (error) {
+      return false;
+    }
   }
 
   getDefaultImage(airplaneModel: string): string {

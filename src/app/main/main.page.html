@@ -11,8 +11,11 @@
 <ion-content [fullscreen]="true">
   <div class="map-wrapper">
     <div class="ui-overlay">
-      <span class="num-of-planes ion-padding ion-margin-top"
-            *ngIf="!flightView && numVisiblePlanes !== 0">{{numVisiblePlanes}} Aircrafts</span>
+      <!-- <span
+           ></span> -->
+      <ion-chip class="num-of-planes ion-padding ion-margin-top"
+                color="primary"
+                *ngIf="!flightView && numVisiblePlanes !== 0">{{numVisiblePlanes}} Aircrafts</ion-chip>
       <ion-fab *ngIf="flightView"
                slot="fixed"
                vertical="top"
@@ -30,7 +33,8 @@
                vertical="bottom"
                horizontal="end"
                class="my-location-button">
-        <ion-fab-button (click)="updateCurrentLocation()">
+        <ion-fab-button color="primary"
+                        (click)="updateCurrentLocation()">
           <ion-icon name="navigate"></ion-icon>
         </ion-fab-button>
       </ion-fab>

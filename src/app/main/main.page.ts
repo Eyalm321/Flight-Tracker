@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast, IonChip } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService } from '../shared/services/adsb.service';
@@ -27,7 +27,7 @@ export interface SelectedAircraft extends MarkerProps {
   styleUrls: ['main.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonToast, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, InfoContainerComponent],
+  imports: [IonChip, CommonModule, IonContent, IonHeader, IonIcon, IonToolbar, IonTitle, IonToast, IonButton, AirplaneCardComponent, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, InfoContainerComponent],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainerRef!: ElementRef;
@@ -129,6 +129,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
         } else if (this.mapInstance) {
           this.updatePlanesInView();
         }
+        this.mapMarkerService.removeMyPositionMarker();
+        this.updateCurrentLocation();
       }
       );
     });
@@ -204,6 +206,12 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
   private setupAllPlanesUpdates(): void {
     this.updateInterval = setInterval(() => {
+      this.isLoading = true;
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }, Math.random() * 2000);
+
       this.updatePlanesInView();
       this.updateNumOfVisiblePlanes();
       // this.mapMarkerService.printAircraftTypes();
@@ -219,7 +227,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     if (!bounds) {
       return;
     }
-    this.isLoading = true;
+
 
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
@@ -236,7 +244,6 @@ export class MainPage implements AfterViewInit, OnDestroy {
       map(([allAircraftData, milAircraftData]) => {
         const allMapped = this.mapAircraftData(allAircraftData.ac, 'civilian');
         const milMapped = this.mapAircraftData(milAircraftData.ac, 'military');
-        this.isLoading = false;
         return this.mergeAndCategorizeAircrafts(allMapped, milMapped);
       }),
       takeUntil(this.destroy$) // Assuming destroy$ is a Subject that emits when component is destroyed

@@ -301,6 +301,13 @@ export class MapMarkerService {
     }
   };
 
+  removeMyPositionMarker(): void {
+    if (this.myPositionMarker) {
+      this.myPositionMarker.map = null;
+      this.myPositionMarker = undefined;
+    }
+  }
+
   printAircraftTypes(): void {
     const types = Object.keys(this.markers).map(key => this.markers[key].model);
     console.log('Aircraft types:', types);
