@@ -6,6 +6,9 @@
     overflow: hidden;
     justify-self: end;
     align-self: center;
+    margin-bottom: var(--ion-safe-area-bottom);
+    margin-top: var(--ion-safe-area-top);
+    margin-right: var(--ion-safe-area-right);
 }
 
 .flight-card {
@@ -105,10 +108,6 @@
     }
 
     .flight-card {
-        margin-bottom: var(--ion-safe-area-bottom);
-        margin-top: var(--ion-safe-area-top);
-        margin-right: var(--ion-safe-area-right);
-
         ion-card-header {
             padding-left: var(--ion-padding);
             padding-right: var(--ion-padding);

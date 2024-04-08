@@ -2,6 +2,7 @@
     position: absolute;
     right: 0;
     width: fit-content;
+    margin-left: var(--ion-safe-area-left, 0);
 }
 
 ion-card {

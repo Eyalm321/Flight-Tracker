@@ -24,7 +24,7 @@
           <ion-icon name="arrow-back"></ion-icon>
         </ion-fab-button>
       </ion-fab>
-      <app-info-container [ngStyle]="{'visibility': selectedAircraft && selectedAircraft.dynamic ? 'visible' : 'hidden'}"
+      <app-info-container *ngIf="selectedAircraft && selectedAircraft?.dynamic && flightView"
                           [selectedAircraft]="selectedAircraft"></app-info-container>
       <ion-fab *ngIf="!flightView"
                slot="fixed"
