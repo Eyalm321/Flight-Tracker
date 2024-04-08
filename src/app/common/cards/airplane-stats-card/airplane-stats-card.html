@@ -6,14 +6,15 @@
       <span class="value">{{selectedAircraft?.dynamic?.last_update}}s</span>
     </div>
 
-
     <span class="coordinates-info"
-          *ngIf="selectedAircraft?.dynamic?.altitude">
+          *ngIf="selectedAircraft?.lat && selectedAircraft?.lng">
       Pos.: <span class="value">{{selectedAircraft?.lat}}°,{{selectedAircraft?.lng}}°</span>
     </span>
     <span class="altitude-info"
-          *ngIf="selectedAircraft?.dynamic?.altitude">
-      Baro. Altitude: <span class="value">{{selectedAircraft?.dynamic?.altitude}}ft</span>
+          *ngIf="selectedAircraft && selectedAircraft.dynamic && selectedAircraft.dynamic.altitude">
+      Baro. Altitude: <span *ngIf="selectedAircraft.dynamic.altitude !== 'ground'; else ground"
+            class="value">{{selectedAircraft.dynamic.altitude}}ft</span>
+      <ng-template #ground>Ground</ng-template>
     </span>
     <span class="geom-rate-info"
           *ngIf="selectedAircraft?.dynamic?.geom_rate">

@@ -16,7 +16,7 @@ export interface SelectedAircraft extends MarkerProps {
   flightDetails?: { flightNumber: string, callsign: string, airlineCode: string; };
   originAirport?: { iata: string, name: string, location: string; };
   destinationAirport?: { iata: string, name: string, location: string; };
-  dynamic?: { last_update: number, gs: number, geom_rate: number, rssi: number; altitude: number; };
+  dynamic?: { last_update: number, gs: number, geom_rate: number, rssi: number; altitude: number | string; };
 }
 @Component({
   selector: 'app-main',
@@ -59,14 +59,16 @@ export class MainPage implements AfterViewInit, OnDestroy {
     'navigate': 'https://unpkg.com/ionicons@7.1.0/dist/svg/navigate.svg',
   });
 
-  constructor(private mapDataService: MapDataService,
+  constructor(
+    private mapDataService: MapDataService,
     private adsbService: AdsbService,
     private mapMarkerService: MapMarkerService,
     private themeWatcherService: ThemeWatcherService,
     private orientationService: OrientationService,
-    private cdr: ChangeDetectorRef,
     private geolocationService: GeolocationService,
-    private toastController: ToastController) { }
+    private toastController: ToastController,
+    private cdr: ChangeDetectorRef,
+  ) { }
 
   ngAfterViewInit(): void {
     const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -300,7 +302,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     const presentToast = async (position: 'top' | 'bottom' | 'middle', message: string) => {
       const toast = this.toastController.create({
         message,
-        duration: 5000,
+        duration: 3000,
         position,
         color: 'warning',
       });
@@ -312,13 +314,16 @@ export class MainPage implements AfterViewInit, OnDestroy {
       .pipe(
         take(1),
         tap(async routes => {
-          if (!this.selectedAircraft || routes.length === 0 || routes[0]._airports.length < 2) {
+          console.log('routes:', routes);
+
+          if (!this.selectedAircraft || routes.length === 0 || routes[0]._airports.length < 1) {
             await presentToast('top', 'No route data found');
             throw new Error('No route data found');
           }
         }),
         tap(routes => {
           if (!this.selectedAircraft) return;
+
           this.selectedAircraft.flightDetails = {
             flightNumber: routes[0].number,
             callsign: routes[0].callsign,
@@ -339,10 +344,12 @@ export class MainPage implements AfterViewInit, OnDestroy {
 
           const origin = { lat: routes[0]._airports[0].lat, lng: routes[0]._airports[0].lon };
           const destination = { lat: routes[0]._airports[1].lat, lng: routes[0]._airports[1].lon };
+          console.log('origin:', origin, 'destination:', destination);
+
           return { origin, destination };
         }),
         catchError(async () => {
-          await presentToast('top', 'Failed to fetch route data');
+          await presentToast('top', 'No route data found');
           return EMPTY;
         })
       )
