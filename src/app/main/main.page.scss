@@ -1,3 +1,21 @@
+ion-button {
+  pointer-events: all;
+}
+
+ion-header {
+  ion-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  .help-circle-button ion-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+
 ion-content {
   --overflow: hidden;
 }

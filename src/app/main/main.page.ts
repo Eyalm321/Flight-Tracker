@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast, IonChip } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonProgressBar, IonFooter, IonFab, IonFabButton, IonFabList, IonToast, IonChip, IonButtons, IonNavLink, IonNav, NavController } from '@ionic/angular/standalone';
 import { MapDataService } from '../shared/services/map-data.service';
 import { ExtendedMarker, MapMarkerService, MarkerProps } from '../shared/services/map-marker.service';
 import { AdsbService, Aircraft } from '../shared/services/adsb.service';
@@ -24,7 +24,7 @@ export interface SelectedAircraft extends MarkerProps {
   styleUrls: ['main.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonChip,
+  imports: [IonNav, IonNavLink, IonButtons, IonChip,
     CommonModule,
     IonHeader,
     IonContent,
@@ -40,6 +40,7 @@ export interface SelectedAircraft extends MarkerProps {
     IonFabList,
     AirplaneCardComponent,
     AirplaneStatsCardComponent,
+    IonNav
   ],
 })
 export class MainPage implements AfterViewInit, OnDestroy {
@@ -57,6 +58,8 @@ export class MainPage implements AfterViewInit, OnDestroy {
   icons = addIcons({
     'arrow-back': 'https://unpkg.com/ionicons@7.1.0/dist/svg/arrow-back.svg',
     'navigate': 'https://unpkg.com/ionicons@7.1.0/dist/svg/navigate.svg',
+    'logo-github': 'https://unpkg.com/ionicons@7.1.0/dist/svg/logo-github.svg',
+    'help-circle': 'https://unpkg.com/ionicons@7.1.0/dist/svg/help-circle.svg'
   });
 
   constructor(
@@ -68,6 +71,7 @@ export class MainPage implements AfterViewInit, OnDestroy {
     private geolocationService: GeolocationService,
     private toastController: ToastController,
     private cdr: ChangeDetectorRef,
+    private navigationController: NavController
   ) { }
 
   ngAfterViewInit(): void {
@@ -88,6 +92,12 @@ export class MainPage implements AfterViewInit, OnDestroy {
         }
       });
     });
+  }
+
+  navigateToAbout() {
+    console.log('Navigating to about page');
+
+    this.navigationController.navigateForward('main/about');
   }
 
   updateNumOfVisiblePlanes(): void {

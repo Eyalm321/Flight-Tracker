@@ -1,13 +1,24 @@
 <ion-header [translucent]="true">
-  <ion-toolbar class="ion-color">
+  <ion-toolbar class="ion-color ion-text-center">
+    <ion-buttons slot="start"
+                 class="ion-padding">
+      <ion-button>
+        <ion-icon name="logo-github"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>
       Flight Tracker
     </ion-title>
     <ion-progress-bar *ngIf="isLoading"
                       type="indeterminate"></ion-progress-bar>
+    <ion-buttons slot="end"
+                 class="ion-padding help-circle-button">
+      <ion-button (click)="navigateToAbout()">
+        <ion-icon name="help-circle"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
-
 <ion-content [fullscreen]="true">
   <div class="content-wrapper">
     <div class="ui-overlay">
