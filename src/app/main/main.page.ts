@@ -95,6 +95,10 @@ export class MainPage implements AfterViewInit, OnDestroy {
     });
   }
 
+  navigateToGithub(): void {
+    window.open('https://github.com/Eyalm321/Flight-Tracker', '_blank');
+  }
+
   navigateToAbout() {
     console.log('Navigating to about page');
 
