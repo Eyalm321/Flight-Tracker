@@ -1,16 +1,29 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
+      <ion-back-button defaultHref="/main"></ion-back-button>
     </ion-buttons>
-    <ion-title>about</ion-title>
+    <ion-title>About the app</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">about</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-card>
+    <ion-card-content>
+      <p>Hello Yohai and the ATT Crew 👋🏻</p>
+      <p>This is a Flight Tracker app that allows users to track flights in real-time using the Adsb.lol API.</p>
+      <p>On the main page, users can view a map with all planes within a 250 nautical mile radius of their device. When
+        a plane is clicked, a card opens displaying an image or a placeholder of the plane type, along with details
+        about the flight and the aircraft, including dynamic real-time data.</p>
+      <p>The app was built using the Ionic Framework and Angular, providing a seamless and responsive user experience.
+      </p>
+      <p>It is designed to work flawlessly in both landscape and horizontal views, and offers two themes - light and
+        dark - based on the user's phone settings.</p>
+      <p>The map functionality is powered by the Google Maps API, utilizing the latest updates including advanced
+        markers. Additionally, icons and images have been customized using Photoshop and Inkscape to align with the
+        app's theme.</p>
+      <p>I made the code available on Github, you can reach it by clicking on the github icon in the main page top left
+        corner.</p>
+    </ion-card-content>
+  </ion-card>
 </ion-content>
