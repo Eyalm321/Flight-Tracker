@@ -3,8 +3,8 @@ export const environment = {
   google: {
     mapsApiKey: 'AIzaSyCiHmiPJ22ufNSAbrSwGFMY9DBxyZy2-9c'
   },
-  openSky: {
-    baseUrl: 'https://opensky-network.org/api',
-    states: '/states/all'
+  adsb: {
+    baseUrl: 'https://api.adsb.lol',
+    proxyPath: '/adsb'
   }
 };

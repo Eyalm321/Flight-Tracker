@@ -4,6 +4,7 @@ import { Observable, catchError, forkJoin, from, map, of, throwError } from 'rxj
 import { Http } from '@capacitor-community/http';
 import { HttpResponse } from '@capacitor/core';
 import { Platform } from '@ionic/angular';
+import { environment } from 'src/environments/environment.prod';
 
 export interface Aircraft {
   alert: number;
@@ -109,8 +110,8 @@ interface ApiResponse {
   providedIn: 'root'
 })
 export class AdsbService {
-  private baseUrl = 'https://api.adsb.lol';
-  private proxyPath = '/adsb';
+  private baseUrl = environment.adsb.baseUrl;
+  private proxyPath = environment.adsb.proxyPath;
 
   constructor(private httpClient: HttpClient, private platform: Platform) { }
 
@@ -174,8 +175,6 @@ export class AdsbService {
   }
 
   private sendHttpRequest(url: string, method: 'GET' | 'POST' = 'GET', body?: any): Observable<any> {
-
-
     if (method === 'POST' && !body) {
       throw new Error('POST request requires a body.');
     }
@@ -194,13 +193,11 @@ export class AdsbService {
         });
       });
     } else {
-      // Adjust request handling based on method for non-Capacitor environments
       if (method === 'GET') {
         return this.httpClient.get<ApiResponse>(`${this.proxyPath}${url}`);
       } else if (method === 'POST') {
         return this.httpClient.post<ApiResponse>(`${this.proxyPath}${url}`, body);
       } else {
-        // Handle other methods as needed
         throw new Error(`HTTP method ${method} not implemented.`);
       }
     }

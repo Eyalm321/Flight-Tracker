@@ -15,10 +15,7 @@ export class GmapsService {
   markerApiLoaded$ = this.markerApiLoaded.asObservable();
 
   constructor() {
-    this.loadLibrary('maps')?.subscribe(() => {
-      console.log('Maps library loaded');
-
-    });
+    this.loadLibrary('maps')?.subscribe();
     this.loadLibrary('marker')?.subscribe();
   }
 
@@ -54,5 +51,4 @@ export class GmapsService {
 
     return of();
   }
-
 }

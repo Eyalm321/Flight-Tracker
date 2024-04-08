@@ -2,7 +2,7 @@ ion-content {
   --overflow: hidden;
 }
 
-.map-wrapper {
+.content-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
@@ -22,8 +22,6 @@ ion-content {
     --box-shadow: none;
   }
 }
-
-
 
 .ui-overlay {
   width: 100%;

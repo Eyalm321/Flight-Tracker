@@ -26,7 +26,6 @@ export class MapDataService {
 
   initNewMapInstance(): void {
     this.mapInstance = undefined;
-
   }
 
   getPolyline(): google.maps.Polyline | undefined {
@@ -38,20 +37,13 @@ export class MapDataService {
       first(isLoaded => isLoaded),
       switchMap(() => this.geolocationService.getCurrentPosition()),
       map(position => {
-        console.log('Position:', position);
-
         if (!this.mapOptions || !position) return undefined;
         this.mapOptions.center = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-        console.log('Center:', this.mapOptions?.center);
 
         if (!this.mapOptions) return undefined;
         this.mapOptions.mapId = isDarkTheme ? this.mapId.dark : this.mapId.light;
         const mapInstance = new google.maps.Map(element, this.mapOptions);
-
         this.mapInstance = mapInstance;
-        console.log('Map instance:', mapInstance);
-
         return mapInstance;
       }),
       catchError(error => {
@@ -61,7 +53,6 @@ export class MapDataService {
     );
   }
 
-
   addFlightPathPolyline(path: google.maps.LatLngLiteral[], waypoints: google.maps.LatLngLiteral[]): void {
     if (!this.mapInstance) {
       console.error('Map instance not available');
@@ -69,8 +60,6 @@ export class MapDataService {
     }
 
     const fullPath = this.integrateWaypointsIntoPath(path, waypoints);
-
-
     const polyline = new google.maps.Polyline({
       path: fullPath,
       geodesic: true,
@@ -84,11 +73,8 @@ export class MapDataService {
     this.polyline.setMap(this.mapInstance);
   }
 
-
   integrateWaypointsIntoPath(path: google.maps.LatLngLiteral[], waypoints: google.maps.LatLngLiteral[]): google.maps.LatLngLiteral[] {
-    // Assuming path has at least two points (start and end), and waypoints are additional points to be integrated
     let fullPath = [path[0], ...waypoints, path[path.length - 1]];
-
     return fullPath;
   }
 
@@ -132,6 +118,4 @@ export class MapDataService {
       this.mapInstance.setCenter({ lat: lat, lng: lon });
     }
   }
-
-
 }

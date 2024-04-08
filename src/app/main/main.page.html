@@ -9,7 +9,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="map-wrapper">
+  <div class="content-wrapper">
     <div class="ui-overlay">
       <ion-chip class="num-of-planes ion-padding ion-margin-top"
                 color="primary"
@@ -24,8 +24,8 @@
           <ion-icon name="arrow-back"></ion-icon>
         </ion-fab-button>
       </ion-fab>
-      <app-info-container *ngIf="selectedAircraft && selectedAircraft?.dynamic && flightView"
-                          [selectedAircraft]="selectedAircraft"></app-info-container>
+      <app-airplane-stats-card *ngIf="selectedAircraft && selectedAircraft?.dynamic && flightView"
+                               [selectedAircraft]="selectedAircraft"></app-airplane-stats-card>
       <ion-fab *ngIf="!flightView"
                slot="fixed"
                vertical="bottom"
@@ -39,8 +39,6 @@
       <app-airplane-card class="card-container"
                          [ngClass]="{'flight-view': flightView, 'portrait': isPortrait}"
                          [aircraft]="selectedAircraft"></app-airplane-card>
-
-
     </div>
     <div #mapContainer
          class="map-container">

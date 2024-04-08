@@ -10,11 +10,8 @@ export class OrientationService {
 
   constructor() {
     this.orientationChange$ = fromEvent(window, 'resize').pipe(
-      // Emit the current orientation immediately, and on resize
       startWith(this.getCurrentOrientation()),
-      // Map to 'landscape' or 'portrait'
       map(() => this.getCurrentOrientation()),
-      // Only emit when the orientation actually changes
       distinctUntilChanged()
     );
   }

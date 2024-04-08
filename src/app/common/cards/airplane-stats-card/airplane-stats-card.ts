@@ -5,13 +5,13 @@ import { IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardS
 import { addIcons } from 'ionicons';
 
 @Component({
-  selector: 'app-info-container',
-  templateUrl: './info-container.component.html',
-  styleUrls: ['./info-container.component.scss'],
+  selector: 'app-airplane-stats-card',
+  templateUrl: './airplane-stats-card.html',
+  styleUrls: ['./airplane-stats-card.scss'],
   standalone: true,
   imports: [IonIcon, CommonModule, IonCard, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle]
 })
-export class InfoContainerComponent {
+export class AirplaneStatsCardComponent {
   @Input() selectedAircraft?: SelectedAircraft;
 
   icons = addIcons({

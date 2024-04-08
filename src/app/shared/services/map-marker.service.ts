@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { GmapsService } from './gmaps.service';
 import { MapDataService } from './map-data.service';
 import { Observable, Subject, catchError, filter, of, switchMap, take, tap } from 'rxjs';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AirplaneDataService } from './airplane-data.service';
 
 export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement {
@@ -10,7 +10,6 @@ export interface ExtendedMarker extends google.maps.marker.AdvancedMarkerElement
   heading: number;
   model: string;
 }
-
 export interface MarkerProps {
   id: string;
   lat: number;
@@ -22,7 +21,6 @@ export interface MarkerProps {
   altitude: number;
   _type?: string;
 }
-
 @Injectable({
   providedIn: 'root'
 })
@@ -40,8 +38,6 @@ export class MapMarkerService {
     return this.gmapsService.markerApiLoaded$.pipe(
       take(1),
       switchMap(() => {
-        console.log('Creating marker:', props);
-
         const svgElement = this.prepareSvgElement(props);
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -52,7 +48,7 @@ export class MapMarkerService {
           zIndex: 1000,
         }) as ExtendedMarker;
 
-        // Apply additional properties to the marker
+
         Object.assign(marker, {
           id: props.id,
           style: { cursor: 'pointer' },
@@ -69,14 +65,12 @@ export class MapMarkerService {
     );
   }
 
-  // Refactored out SVG element preparation to its own method
   private prepareSvgElement(props: MarkerProps): HTMLElement {
     const svgElement = document.createElement('img');
     svgElement.src = this.airplaneDataService.getAircraftTypeMarkerIcon(props.model);
-    const scale = this.getScaleByAltitude(props.altitude); // Fixed typo from 'Altitute' to 'Altitude'
+    const scale = this.getScaleByAltitude(props.altitude);
     const size = this.markerSize;
 
-    // Pre-set styles as a single assignment to minimize reflows
     Object.assign(svgElement.style, {
       width: `${size}px`,
       height: `${size}px`,
@@ -88,12 +82,6 @@ export class MapMarkerService {
     });
 
     return svgElement;
-  }
-
-  async loadSvg() {
-    const svgPath = './assets/icons/airplane.svg';
-    const svgContent = await fetch(svgPath).then(response => response.text());
-    return this.sanitizer.bypassSecurityTrustHtml(svgContent);
   }
 
   private onClickMarker(marker: MarkerProps): void {
@@ -125,13 +113,12 @@ export class MapMarkerService {
     }
   }
 
-
   removeMarker(markerId: string): void {
     const marker = this.markers[markerId];
     if (marker) {
-      // Assuming you have a method to actually remove the marker from the map
-      marker.map = null; // Removes the marker from the Google Map
-      delete this.markers[markerId]; // Remove the marker from the dictionary
+
+      marker.map = null;
+      delete this.markers[markerId];
     }
   }
 
@@ -139,13 +126,10 @@ export class MapMarkerService {
     if (!markerProps.lat || !markerProps.lng) return;
     const existingMarker = this.markers[markerProps.id];
     if (existingMarker) {
-      // Smooth transition for position
       this.transitionMarkerPosition(existingMarker, markerProps.lat, markerProps.lng, markerProps.heading);
 
-      // Smooth rotation transition
       if (existingMarker.content) {
         const airplaneElement = existingMarker.content as HTMLElement;
-
         airplaneElement.style.transform = `rotate(${markerProps.heading}deg)`;
         airplaneElement.style.scale = `${this.getScaleByAltitude(markerProps.altitude)}`;
       }
@@ -154,8 +138,7 @@ export class MapMarkerService {
       if (mapInstance) {
         this.createMarker(markerProps, mapInstance).pipe(
           take(1),
-          filter(newMarker => !!newMarker),
-          tap(newMarker => console.log('New marker created:', newMarker)))
+          filter(newMarker => !!newMarker))
           .subscribe(
             marker => this.markers[markerProps.id] = marker as ExtendedMarker,
           );
@@ -207,15 +190,12 @@ export class MapMarkerService {
   }
 
   updateMarkers(markerPropsArray: MarkerProps[]): void {
-    // Create a set of new data IDs for easier lookup
     const newDataIds = new Set(markerPropsArray.map(props => props.id));
 
-    // Add or update markers based on the new data
     for (const markerProps of markerPropsArray) {
       this.addOrUpdateMarker(markerProps);
     }
 
-    // Identify markers to remove (those not in the new data)
     Object.keys(this.markers).forEach(markerId => {
       if (!newDataIds.has(markerId)) {
         this.removeMarker(markerId);
@@ -274,8 +254,6 @@ export class MapMarkerService {
 
     const pinSvgElement = document.createElement('img');
     pinSvgElement.src = pinSvgPath;
-    console.log(pinSvgElement);
-
     Object.assign(pinSvgElement.style, {
       width: `${size}px`,
       height: `${size}px`,
@@ -284,7 +262,6 @@ export class MapMarkerService {
       left: `${-size / 2}px`,
     });
 
-
     const marker = new google.maps.marker.AdvancedMarkerElement({
       position: { lat, lng: lon },
       map: mapInstance,
@@ -292,8 +269,6 @@ export class MapMarkerService {
       zIndex: 1001,
       content: pinSvgElement
     });
-
-
 
     return marker;
   }
@@ -317,8 +292,5 @@ export class MapMarkerService {
   printAircraftTypes(): void {
     const types = Object.keys(this.markers).map(key => this.markers[key].model);
     console.log('Aircraft types:', types);
-
-
   }
-
 }

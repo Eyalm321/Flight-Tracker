@@ -15,7 +15,6 @@ export class GeolocationService {
         .then(coordinates => {
           observer.next(coordinates);
           observer.complete();
-          console.log('Current position:', coordinates);
         })
         .catch(error => {
           console.error('Error getting location', error);
