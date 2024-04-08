@@ -1,6 +1,6 @@
-ion-card {
-    margin-left: var(--ion-safe-area-left);
-    margin-right: var(--ion-safe-area-right);
-    margin-bottom: var(--ion-safe-area-bottom);
-    margin-top: var(--ion-safe-area-top);
+ion-content {
+    padding-left: var(--ion-safe-area-left);
+    padding-right: var(--ion-safe-area-right);
+    padding-bottom: var(--ion-safe-area-bottom);
+    padding-top: var(--ion-safe-area-top);
 }
